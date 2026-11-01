@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   COMMANDS, SoundpadError, buildCommand, cleanAnswer, compareVersions, parseAnswer, statusCode, supports,
-} from '../com.ulanzi.soundpad.ulanziPlugin/plugin/soundpad/protocol.js';
-import { XmlError, decodeEntities, isCompleteDocument, parseXml } from '../com.ulanzi.soundpad.ulanziPlugin/plugin/soundpad/xml.js';
+} from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/soundpad/protocol.js';
+import { XmlError, decodeEntities, isCompleteDocument, parseXml } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/soundpad/xml.js';
 
 test('commands are written the way the reference client writes them', () => {
   assert.equal(buildCommand('DoPlaySound', 5), 'DoPlaySound(5)');

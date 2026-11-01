@@ -1,9 +1,9 @@
 // Reading the list and categories, and finding a saved sound again after the list changes.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { categoryId, fileId, metaId, normalizeLocation, resolveSound } from '../com.ulanzi.soundpad.ulanziPlugin/plugin/soundpad/identity.js';
-import { ALL_SOUNDS, Library, searchText } from '../com.ulanzi.soundpad.ulanziPlugin/plugin/soundpad/library.js';
-import { parseXml } from '../com.ulanzi.soundpad.ulanziPlugin/plugin/soundpad/xml.js';
+import { categoryId, fileId, metaId, normalizeLocation, resolveSound } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/soundpad/identity.js';
+import { ALL_SOUNDS, Library, searchText } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/soundpad/library.js';
+import { parseXml } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/soundpad/xml.js';
 import { SoundpadSimulator, makeSounds } from './support/soundpad-sim.mjs';
 
 /** Builds a Library exactly as the plugin would from the simulator's answers. */

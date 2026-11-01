@@ -16,8 +16,6 @@ export const PAUSED_POLL_MS = 1_500;
 // Only while a key that shows Soundpad's own state (pause, stop) is on screen: sounds started from
 // Soundpad itself are noticed within this long.
 export const IDLE_POLL_MS = 3_000;
-// A list read this recently is trusted when Soundpad cannot answer the one-entry check.
-export const FRESH_LIBRARY_MS = 3_000;
 export const VOLUME_STEP = 10;
 export const MIN_RC_VERSION = '1.0.0';
 
@@ -465,18 +463,24 @@ export class SoundpadService {
    * Reads the list again when either fails, then tries once more.
    */
   async #locate(ref) {
+    let readNow = false;
     for (let attempt = 0; attempt < 2; attempt += 1) {
-      if (!this.#library || this.#libraryStale || attempt > 0) await this.#sync('play');
+      if (!this.#library || this.#libraryStale || attempt > 0) {
+        await this.#sync('play');
+        readNow = true;
+      }
       const library = this.#library;
       if (!library) return null;
       const found = library.resolve(ref);
       if (found.status !== 'ok') {
-        if (attempt === 0 && this.#now() - library.fetchedAt > FRESH_LIBRARY_MS) continue;
+        if (!readNow) continue;
         return null;
       }
       const check = await this.#confirmAt(found.sound);
       if (check === 'same') return found.sound;
-      if (check === 'trust' && this.#now() - library.fetchedAt <= FRESH_LIBRARY_MS) return found.sound;
+      // Without the one-entry check, only a list read for this very press is trusted: one read even a
+      // second earlier may predate a reorder.
+      if (check === 'trust' && readNow) return found.sound;
     }
     return null;
   }

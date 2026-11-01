@@ -2,8 +2,8 @@
 import assert from 'node:assert/strict';
 import { afterEach, test } from 'node:test';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { PipeClient, connectFailureReason } from '../com.ulanzi.soundpad.ulanziPlugin/plugin/soundpad/pipe-client.js';
-import { SoundpadError } from '../com.ulanzi.soundpad.ulanziPlugin/plugin/soundpad/protocol.js';
+import { PipeClient, connectFailureReason } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/soundpad/pipe-client.js';
+import { SoundpadError } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/soundpad/protocol.js';
 import { SoundpadSimulator, makeSounds, simPath } from './support/soundpad-sim.mjs';
 
 const cleanups = [];

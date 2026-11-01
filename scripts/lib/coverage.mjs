@@ -1,6 +1,6 @@
 // Reads what `node --test --experimental-test-coverage` writes. Node 20 has no thresholds of its own.
 
-const OWN_CODE = /com\.ulanzi\.soundpad\.ulanziPlugin\/plugin\//;
+const OWN_CODE = /com\.ulanzi\.soundpadpro\.ulanziPlugin\/plugin\//;
 // Verbatim SDK copies and generated outlines say nothing about the tests of this project.
 const NOT_OURS = /\/(node_modules|ulanzi-api|glyphs)\//;
 
