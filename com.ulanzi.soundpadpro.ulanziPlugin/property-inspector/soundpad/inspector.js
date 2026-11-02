@@ -238,6 +238,13 @@ const saveGroupOptions = Utils.debounce(() => {
 
 // --- wiring ---
 
+/** Everything a status message shows. Run again once the language file arrives. */
+function showStatus(status) {
+  showConnection(status);
+  if (status.kind === 'sound') showSoundState(status);
+  if (status.kind === 'slot' || status.kind === 'nav') showGroup(status);
+}
+
 function whenLocalized(fn, tries = 40) {
   if ($UD.localization || tries <= 0) {
     fn();
@@ -268,8 +275,13 @@ $UD.onConnected(() => {
   // The SDK loads the language file without waiting, so text written before it arrives is redone.
   whenLocalized(() => {
     showChosen();
-    showConnection(lastStatus);
-    if (!library.ready) $('#resultInfo').textContent = t('library.waiting');
+    showStatus(lastStatus);
+    if (library.ready) {
+      fillCategories($('#category'), $('#category').value || 'all', false);
+      fillCategories($('#groupStartCategory'), $('#groupStartCategory').value, true);
+    } else {
+      $('#resultInfo').textContent = t('library.waiting');
+    }
   });
 
   form.addEventListener('input', (event) => {
@@ -296,9 +308,7 @@ $UD.onSendToPropertyInspector((jsn) => {
   switch (message?.type) {
     case 'status':
       lastStatus = message;
-      showConnection(message);
-      if (message.kind === 'sound') showSoundState(message);
-      if (message.kind === 'slot' || message.kind === 'nav') showGroup(message);
+      showStatus(message);
       break;
     case 'library':
       showLibrary(message);

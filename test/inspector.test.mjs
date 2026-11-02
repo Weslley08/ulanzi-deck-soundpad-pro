@@ -41,6 +41,7 @@ let messages = [];
 const consoleOutput = [];
 let notify = () => {};
 let nextId = 1;
+let pausedRequest = () => {};
 const pending = new Map();
 
 function waitForMessage(predicate) {
@@ -151,6 +152,7 @@ before(async () => {
   page.on('message', (raw) => {
     const reply = JSON.parse(raw);
     if (reply.method === 'Runtime.consoleAPICalled') consoleOutput.push(JSON.stringify(reply.params.args));
+    if (reply.method === 'Fetch.requestPaused') pausedRequest(reply.params);
     pending.get(reply.id)?.resolve(reply.result);
     pending.delete(reply.id);
   });
@@ -378,6 +380,23 @@ test('a control key hides what does not apply to its action', options, async () 
   fromHost({ cmd: 'paramfromapp', param: { action: 'volumeUp' } });
   await until(`document.querySelector('#volumeNote').offsetParent !== null`);
   assert.equal(await run(`document.querySelector('#groupOptions').offsetParent`), null);
+});
+
+test('status that arrives before the language file is written again in the right language', options, async () => {
+  ACTION_UUID = `${PLUGIN}.nav`;
+  messages = [];
+  // The language file is held back until the status has been shown, as on a slow machine.
+  await cdp('Fetch.enable', { patterns: [{ urlPattern: '*pt_BR.json' }] });
+  const held = new Promise((resolve) => { pausedRequest = resolve; });
+  await cdp('Page.navigate', { url: pageUrl('nav') });
+  await waitForMessage((m) => m.payload?.type === 'hello');
+  fromHost({ cmd: 'sendToPropertyInspector', payload: { ...CONNECTED, kind: 'nav', group: 'A', page: 1, pages: 3, mode: 'categories', positionsOnDeck: 4, pageSize: 4, options: {} } });
+  await until(`document.querySelector('#groupState').textContent.length > 0`);
+  const { requestId } = await held;
+  await cdp('Fetch.continueRequest', { requestId });
+  await cdp('Fetch.disable');
+  await until(`document.querySelector('#groupState').textContent.includes('Página 1 de 3')`);
+  assert.match(await run(`document.querySelector('#connection').textContent`), /Conectado/);
 });
 
 test('nothing private reaches the browser console', options, async () => {
