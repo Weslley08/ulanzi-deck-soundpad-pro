@@ -23,6 +23,12 @@ async function setup(options = {}, clientOptions = {}) {
   return { sim, client, path };
 }
 
+/** The client can hear "connected" before the server has counted the connection, as on Windows pipes. */
+async function untilConnections(sim, count) {
+  for (let i = 0; i < 200 && sim.connections !== count; i += 1) await sleep(10);
+  assert.equal(sim.connections, count);
+}
+
 const isKind = (kind) => (error) => error instanceof SoundpadError && error.kind === kind;
 
 test('connects, sends a command and reads its answer', async () => {
@@ -158,18 +164,18 @@ test('when nothing wants it, the connection closes and no retry stays scheduled'
   const { sim, client } = await setup();
   client.setWanted(true);
   await new Promise((resolve) => client.once('open', resolve));
-  assert.equal(sim.connections, 1);
+  await untilConnections(sim, 1);
   client.setWanted(false);
-  await sleep(30);
+  await untilConnections(sim, 0);
   assert.equal(client.state, 'closed');
   assert.equal(client.retryScheduled, false);
-  assert.equal(sim.connections, 0);
 });
 
 test('a dropped connection is reopened at once while wanted', async () => {
   const { sim, client } = await setup();
   client.setWanted(true);
   await new Promise((resolve) => client.once('open', resolve));
+  await untilConnections(sim, 1);
   const reopened = new Promise((resolve) => client.once('open', resolve));
   sim.dropClients();
   await reopened;
@@ -183,8 +189,7 @@ test('once nothing wants the pipe, no request still in flight can open it again'
   client.setWanted(false);
   await assert.rejects(client.request('GetPlayStatus'), isKind('stopped'));
   await assert.rejects(client.open(), isKind('stopped'));
-  await sleep(30);
-  assert.equal(sim.connections, 0);
+  await untilConnections(sim, 0);
   client.setWanted(true);
   assert.equal(await client.request('IsAlive'), true, 'wanted again, it works again');
 });
@@ -194,8 +199,7 @@ test('closing while still connecting leaves nothing open', async () => {
   const opening = client.open();
   client.close();
   await assert.rejects(opening, isKind('stopped'));
-  await sleep(30);
-  assert.equal(sim.connections, 0);
+  await untilConnections(sim, 0);
   assert.equal(client.state, 'closed');
 });
 
