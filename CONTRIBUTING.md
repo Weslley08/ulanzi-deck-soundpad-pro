@@ -76,7 +76,7 @@ node plugin/app.js 127.0.0.1 39069 en
 feature/*, fix/*, chore/*...  ->  develop  ->  release/vX.Y.Z  ->  main
 ```
 
-A person merges at each arrow, and the rest happens by itself, in two workflows:
+A person merges at each arrow, and the rest happens by itself, in two workflows whose jobs live in [ulanzi-plugin-pipeline](https://github.com/Weslley08/ulanzi-plugin-pipeline). The files here only say when they run and what differs for this plugin:
 
 - **Gate** (`gate.yml`) decides whether a change may merge: the branch rules, workflow lint, tests, coverage, the zip, licenses, known vulnerabilities, CodeQL and dependency review. It also runs each week. Its **Branch flow** check refuses a pull request that skips a step, and the rest waits for that check.
 - **Delivery** (`delivery.yml`) moves the change along: it opens the pull requests, builds and validates a release, creates the draft and, once the maintainer allows it, publishes it.
@@ -100,7 +100,7 @@ A tag, its release and the plugin all carry the same number. `Version` in `manif
 
 Each of these is needed once, and a step that lacks a secret fails and names it.
 
-- **Settings:** `npm run setup:github` protects `develop`, `main` and `release/v*`, allows merge commits only and turns on auto-merge. Add `-- --dry-run` to see the changes first. Run it again after renaming a required check. Also turn on secret scanning with push protection, private vulnerability reporting and Dependabot alerts in the repository settings.
+- **Settings:** from a clone of [ulanzi-plugin-pipeline](https://github.com/Weslley08/ulanzi-plugin-pipeline), `node scripts/setup-repo.mjs Weslley08/ulanzi-deck-soundpad-pro` protects `develop`, `main` and `release/v*`, allows merge commits only, and turns on auto-merge and the security settings. Add `--dry-run` to see the changes first.
 - **`AUTOMATION_TOKEN`:** a [fine-grained token](https://github.com/settings/personal-access-tokens/new) for this repository only, with read and write on **Contents** and **Pull requests**. A pull request opened with the workflow's own token leaves the Gate waiting for a click on "Approve workflows to run". Set it with `gh secret set AUTOMATION_TOKEN`, and again when it expires.
 - **`PUBLISHING_ENABLED`:** a repository variable, not a secret. Until it is `true`, merging into `main` leaves the draft alone. Set it with `gh variable set PUBLISHING_ENABLED --body true` only once the maintainer has decided to publish.
 
