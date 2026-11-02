@@ -7,6 +7,7 @@ export const SAVE_DELAY_MS = 1_000;
 export class GlobalStore {
   #data = normalizeGlobalSettings();
   #known = false;
+  /** @type {any} */
   #saveTimer = null;
   #timers;
   #write;

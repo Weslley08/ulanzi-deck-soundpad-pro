@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
+import v8 from 'node:v8';
 import { Resvg, initWasm } from '@resvg/resvg-wasm';
 import { FONT_IDS, SIZE, faceSvg } from './face.js';
 import { loadFont } from './text.js';
@@ -10,6 +11,14 @@ const require = createRequire(import.meta.url);
 
 let ready = null;
 const cache = new Map();
+
+// V8 compiles WASM twice: first quickly (Liftoff), then again with its optimizer (TurboFan) once the
+// code is hot. For the resvg engine that second pass cost about 55 MB of memory that never came back
+// and 0.5 s of CPU, measured on Node 20.12.2, to save under 1 ms per key image. Studio starts the
+// process, so the flag cannot go on its command line; it is set here, before the engine is compiled,
+// and it only affects WASM. See docs/PERFORMANCE.md.
+export const WASM_FLAGS = '--liftoff-only';
+v8.setFlagsFromString(WASM_FLAGS);
 
 // The WASM engine loads on first use, so a plugin with no key on the deck costs almost nothing.
 function initEngine() {

@@ -17,8 +17,10 @@ export class BaseKey {
   active = true;
   /** @type {string|null} */
   #lastView = null;
+  /** @type {string|null} */
   #lastIcon = null;
   #renderToken = 0;
+  /** @type {string|null} */
   #lastStatus = null;
   #destroyed = false;
 
@@ -54,7 +56,8 @@ export class BaseKey {
     if (active) this.redraw();
   }
 
-  onActiveChanged() {}
+  /** @param {boolean} _active */
+  onActiveChanged(_active) {}
 
   /** Forgets what was sent. The screen may have been repainted, or Studio restarted. */
   redraw() {

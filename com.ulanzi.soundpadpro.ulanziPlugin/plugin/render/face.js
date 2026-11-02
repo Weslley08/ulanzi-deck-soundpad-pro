@@ -51,9 +51,9 @@ function titleLines(title) {
 /** @param {FaceView} view */
 export function faceSvg(view) {
   const bg = Object.hasOwn(BACKGROUND_COLORS, view.background) ? BACKGROUND_COLORS[view.background] : BACKGROUND_COLORS.black;
-  const state = Object.hasOwn(STATE_COLORS, view.state) || view.state === 'loading' ? view.state : 'ready';
+  const state = Object.hasOwn(STATE_COLORS, view.state ?? '') || view.state === 'loading' ? view.state : 'ready';
   const stateColor = STATE_COLORS[state];
-  const accent = Object.hasOwn(ACCENT_COLORS, view.accent) ? ACCENT_COLORS[view.accent] : ACCENT_COLORS.white;
+  const accent = view.accent && Object.hasOwn(ACCENT_COLORS, view.accent) ? ACCENT_COLORS[view.accent] : ACCENT_COLORS.white;
   const ink = stateColor ?? accent;
   const ring = stateColor ?? READY_RING;
   const title = normalizeText(FONT.title, view.title ?? '');

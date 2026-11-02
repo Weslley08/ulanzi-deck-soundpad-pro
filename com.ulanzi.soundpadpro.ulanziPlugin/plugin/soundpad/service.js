@@ -28,6 +28,10 @@ const OUTPUTS = {
 /** @typedef {'disabled'|'connecting'|'connected'|'offline'|'incompatible'} ConnectionState */
 
 class Subscription {
+  /**
+   * @param {SoundpadService} service
+   * @param {{ active?: boolean, onChange?: (what: string) => void, wantsVolume?: boolean, wantsStatus?: boolean }} options
+   */
   constructor(service, { active = true, onChange = () => {}, wantsVolume = false, wantsStatus = false }) {
     this.service = service;
     this.active = active;
@@ -59,9 +63,13 @@ export class SoundpadService {
   /** @type {Library|null} */
   #library = null;
   #libraryStale = false;
+  /** @type {string|null} */
   #lastError = null;
+  /** @type {string|null} */
   #rcVersion = null;
+  /** @type {string|null} */
   #version = null;
+  /** @type {boolean|null} */
   #trial = null;
   #categoriesSupported = true;
   // Whether GetSoundlist(i, i) returns entry i. Not documented, so it is checked before relied on.
@@ -69,20 +77,27 @@ export class SoundpadService {
   /** @type {Promise<Library|null>|null} */
   #syncing = null;
   #syncAgain = false;
+  /** @type {any} */
   #syncTimer = null;
   #lastManualSync = -Infinity;
+  /** @type {any} */
   #countTimer = null;
   #lastActivationCheck = -Infinity;
+  /** @type {any} */
   #statusTimer = null;
   #playStatus = 'STOPPED';
   /** @type {{id: string, index: number}|null} */
   #nowPlaying = null;
   /** @type {{volume: number, muted: boolean}|null} */
   #volume = null;
+  /** @type {Promise<void>|null} */
   #handshake = null;
   #disposed = false;
   #beforeNotify;
 
+  /**
+   * @param {{ client?: PipeClient, timers?: any, now?: () => number, log?: (line: string) => void, beforeNotify?: (what: string) => void }} [options]
+   */
   constructor({ client = new PipeClient(), timers = globalThis, now = Date.now, log = () => {}, beforeNotify = () => {} } = {}) {
     this.#client = client;
     this.#beforeNotify = beforeNotify;
@@ -328,7 +343,8 @@ export class SoundpadService {
     } catch {
       return false;
     }
-    return this.#state === 'connected';
+    // The state changed while waiting, which the type checker cannot see.
+    return /** @type {ConnectionState} */ (this.#state) === 'connected';
   }
 
   #onOpen() {

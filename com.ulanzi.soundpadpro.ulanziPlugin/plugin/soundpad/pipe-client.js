@@ -54,10 +54,12 @@ export class PipeClient extends EventEmitter {
   #wanted = false;
   /** @type {Promise<void>|null} */
   #opening = null;
+  /** @type {any} */
   #retryTimer = null;
-  /** @type {{text: string, kind: string, timeoutMs: number, resolve: Function, reject: Function}[]} */
+  /** @typedef {'ok'|'number'|'text'|'xml'|'status'|'flag'} AnswerKind */
+  /** @type {{text: string, kind: AnswerKind, timeoutMs: number, resolve: Function, reject: Function, urgent: boolean}[]} */
   #queue = [];
-  /** @type {{text: string, kind: string, timeoutMs: number, resolve: Function, reject: Function, timer: any, chunks: Buffer[], size: number, xmlRoot: string|null|undefined}|null} */
+  /** @type {{text: string, kind: AnswerKind, timeoutMs: number, resolve: Function, reject: Function, urgent: boolean, timer: any, chunks: any[], size: number, xmlRoot: string|null|undefined}|null} */
   #current = null;
   #urgentCount = 0;
   #abortOpening = false;
@@ -278,15 +280,17 @@ export class PipeClient extends EventEmitter {
   #pump() {
     if (this.#current || this.state !== 'open' || !this.#queue.length) return;
     const job = this.#queue.shift();
+    const socket = this.#socket;
+    if (!job || !socket) return;
     if (job.urgent) this.#urgentCount -= 1;
-    const current = { ...job, chunks: [], size: 0, xmlRoot: undefined, timer: null };
+    const current = { ...job, chunks: [], size: 0, xmlRoot: undefined, timer: /** @type {any} */ (null) };
     this.#current = current;
     current.timer = this.#timers.setTimeout(() => {
       if (this.#current !== current) return;
       // The answer may still come, and would then be read as the answer to the next request.
       this.#dropConnection('timeout');
     }, job.timeoutMs);
-    this.#socket.write(job.text, 'utf8');
+    socket.write(job.text, 'utf8');
   }
 
   #dropConnection(reason) {

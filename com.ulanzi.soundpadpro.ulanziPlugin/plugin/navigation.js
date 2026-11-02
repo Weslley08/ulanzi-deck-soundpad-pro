@@ -18,6 +18,7 @@ export class GroupNavigator {
   #controls = new Set();
   #options = normalizeGroupOptions();
   #state = normalizeNavState();
+  /** @type {{ mode: string, category: string, page: number } | null} */
   #savedState = null;
   #moved = false;
 

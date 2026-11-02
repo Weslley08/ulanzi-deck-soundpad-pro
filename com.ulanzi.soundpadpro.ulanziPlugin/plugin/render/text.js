@@ -74,7 +74,12 @@ const num = (n) => Math.round(n * 100) / 100;
 
 /**
  * Draws text as SVG paths.
- * @param {object} opts anchor ('start' | 'middle' | 'end'), fill, opacity, tracking
+ * @param {string} fontId
+ * @param {string} str
+ * @param {number} x
+ * @param {number} y
+ * @param {number} size
+ * @param {{ anchor?: 'start' | 'middle' | 'end', fill?: string, opacity?: number, tracking?: number }} [options]
  */
 export function text(fontId, str, x, y, size, { anchor = 'start', fill = '#fff', opacity, tracking = 0 } = {}) {
   const glyphs = font(fontId);

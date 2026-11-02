@@ -64,7 +64,7 @@ export function soundRefFrom(payload) {
 
 /**
  * @param {import('./keys/base-key.js').BaseKey} key
- * @param {unknown} payload
+ * @param {any} payload anything the panel sent; every field is checked below
  * @param {{ service: import('./soundpad/service.js').SoundpadService, store: import('./global-store.js').GlobalStore, version: string }} deps
  */
 export async function handleInspectorMessage(key, payload, { service, store, version }) {
