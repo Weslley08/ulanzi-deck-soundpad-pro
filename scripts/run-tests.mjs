@@ -6,9 +6,9 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { belowFloors, coverageTable, ownFiles, parseLcov, totals } from './lib/coverage.mjs';
 
-// Set just under what the suite reached when these floors were written. Losing tests fails, and small
-// changes do not. See CONTRIBUTING.md for the numbers measured.
-const FLOORS = { lines: 90, branches: 85, functions: 90 };
+// Just under what the suite reached on Linux with Node 20.12.2 when these were set: 96.6% of lines,
+// 89.6% of branches and 94.0% of functions. Losing tests fails, and small changes do not.
+const FLOORS = { lines: 94, branches: 87, functions: 91 };
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const files = readdirSync(join(root, 'test'))

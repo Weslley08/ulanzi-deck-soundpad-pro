@@ -64,6 +64,10 @@ const saveSettings = Utils.debounce(() => {
 function loadSettings(jsn) {
   if (!jsn?.param) return;
   settings = { ...DEFAULTS[action], ...jsn.param };
+  fillForm();
+}
+
+function fillForm() {
   for (const el of fields()) {
     if (document.activeElement !== el) writeField(el, settings[el.dataset.field]);
   }
@@ -234,6 +238,14 @@ const saveGroupOptions = Utils.debounce(() => {
 
 // --- wiring ---
 
+function whenLocalized(fn, tries = 40) {
+  if ($UD.localization || tries <= 0) {
+    fn();
+    return;
+  }
+  setTimeout(() => whenLocalized(fn, tries - 1), 50);
+}
+
 function buildIconGrid() {
   $('#iconGrid').replaceChildren(...ICONS.map((icon) => {
     const label = Object.assign(document.createElement('label'), { className: 'icon-choice', title: t(`icon.${icon}`) });
@@ -252,8 +264,13 @@ $UD.onConnected(() => {
   if (form.dataset.bound) return;
   form.dataset.bound = 'true';
   buildIconGrid();
-  syncVisibility();
-  showChosen();
+  fillForm();
+  // The SDK loads the language file without waiting, so text written before it arrives is redone.
+  whenLocalized(() => {
+    showChosen();
+    showConnection(lastStatus);
+    if (!library.ready) $('#resultInfo').textContent = t('library.waiting');
+  });
 
   form.addEventListener('input', (event) => {
     if (event.target.id === 'search' || event.target.id === 'category') return;
