@@ -95,7 +95,11 @@ export class SoundpadSimulator {
   async close() {
     clearTimeout(this.#stopTimer);
     for (const socket of this.#sockets) socket.destroy();
-    if (this.#server) await new Promise((resolve) => this.#server.close(resolve));
+    // On Windows a pipe server can wait for a connection being made while it closes, so this is bounded.
+    if (this.#server) {
+      const server = this.#server;
+      await Promise.race([new Promise((resolve) => server.close(resolve)), new Promise((resolve) => { setTimeout(resolve, 2000).unref(); })]);
+    }
     this.#server = null;
   }
 

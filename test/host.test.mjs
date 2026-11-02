@@ -319,6 +319,7 @@ test('exits cleanly when asked to stop, and leaves Soundpad alone', async () => 
   plugin.kill('SIGTERM');
   const [code] = await exit;
   plugin = null;
-  assert.equal(code, 0);
+  // Windows has no signals: kill() ends the process at once, with no exit code of its own.
+  if (process.platform !== 'win32') assert.equal(code, 0);
   await until(() => sim.connections === 0);
 });

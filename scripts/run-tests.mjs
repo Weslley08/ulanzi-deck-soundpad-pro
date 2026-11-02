@@ -22,7 +22,8 @@ const options = coverage
   ? ['--experimental-test-coverage', '--test-reporter=lcov', `--test-reporter-destination=${lcov}`, '--test-reporter=spec', '--test-reporter-destination=stdout']
   : [];
 
-const { status } = spawnSync(process.execPath, [...options, '--test', ...files], { cwd: root, stdio: 'inherit' });
+// A test that hangs fails with its name after two minutes, instead of holding CI until its own limit.
+const { status } = spawnSync(process.execPath, [...options, '--test-timeout=120000', '--test', ...files], { cwd: root, stdio: 'inherit' });
 if (!coverage || status !== 0) process.exit(status ?? 1);
 
 const own = ownFiles(parseLcov(readFileSync(lcov, 'utf8')));
