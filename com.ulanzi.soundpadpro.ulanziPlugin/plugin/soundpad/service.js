@@ -81,9 +81,11 @@ export class SoundpadService {
   #volume = null;
   #handshake = null;
   #disposed = false;
+  #beforeNotify;
 
-  constructor({ client = new PipeClient(), timers = globalThis, now = Date.now, log = () => {} } = {}) {
+  constructor({ client = new PipeClient(), timers = globalThis, now = Date.now, log = () => {}, beforeNotify = () => {} } = {}) {
     this.#client = client;
+    this.#beforeNotify = beforeNotify;
     this.#timers = timers;
     this.#now = now;
     this.#log = log;
@@ -582,6 +584,7 @@ export class SoundpadService {
   }
 
   #notify(what) {
+    this.#beforeNotify(what);
     for (const sub of [...this.#subs]) sub.onChange(what);
   }
 }
