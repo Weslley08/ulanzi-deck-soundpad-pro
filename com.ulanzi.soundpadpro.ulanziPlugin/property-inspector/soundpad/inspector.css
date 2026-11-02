@@ -1,0 +1,176 @@
+.field-note {
+  margin-top: -4px;
+}
+
+.field-note-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-note-body .tip {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.hint,
+.note {
+  margin: 0;
+  font-size: 11px;
+  line-height: 15px;
+  color: var(--uspi-unitcolor);
+  overflow-wrap: anywhere;
+}
+
+.hint:empty {
+  display: none;
+}
+
+.note {
+  margin: 0 16px 6px;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.button-row button {
+  width: auto;
+  height: 28px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+details summary {
+  cursor: pointer;
+  font-size: 12px;
+}
+
+#diagnosticList {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin: 6px 0 0;
+  font-size: 11px;
+}
+
+#diagnosticList dt {
+  color: var(--uspi-unitcolor);
+}
+
+#diagnosticList dd {
+  margin: 0;
+  color: var(--uspi-textcolor);
+  overflow-wrap: anywhere;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.result {
+  display: flex;
+  gap: 4px;
+}
+
+.result button {
+  height: auto;
+  min-height: 34px;
+  padding: 4px 8px;
+  font-size: 12px;
+  text-align: left;
+  color: var(--uspi-textcolor);
+  background: var(--uspi-inputbg);
+  border: 1px solid var(--uspi-bordercolor);
+  border-radius: var(--uspi-borderradius);
+}
+
+.result .pick {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.result .preview {
+  width: 34px;
+  flex: none;
+  padding: 0;
+  text-align: center;
+}
+
+.result button:hover,
+.result button:focus-visible {
+  border-color: var(--uspi-theme);
+  outline: none;
+}
+
+.result.selected .pick {
+  border-color: var(--uspi-theme);
+}
+
+.result-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result-meta {
+  font-size: 11px;
+  color: var(--uspi-unitcolor);
+}
+
+.result-meta:empty {
+  display: none;
+}
+
+.chosen {
+  display: flex;
+  align-items: center;
+  min-height: var(--uspi-height);
+  font-size: 12px;
+  color: var(--uspi-textcolor);
+  overflow-wrap: anywhere;
+}
+
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.icon-choice {
+  cursor: pointer;
+}
+
+.icon-choice img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+}
+
+.icon-choice:hover img {
+  outline-color: var(--uspi-bordercolor);
+}
+
+.icon-choice:has(input:checked) img {
+  outline-color: var(--uspi-theme);
+}
+
+.version {
+  margin: 0 16px 12px;
+  font-size: 11px;
+  color: var(--uspi-unitcolor);
+}
