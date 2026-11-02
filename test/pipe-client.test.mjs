@@ -176,6 +176,19 @@ test('a dropped connection is reopened at once while wanted', async () => {
   assert.equal(await client.request('IsAlive'), true);
 });
 
+test('once nothing wants the pipe, no request still in flight can open it again', async () => {
+  const { sim, client } = await setup();
+  client.setWanted(true);
+  await new Promise((resolve) => client.once('open', resolve));
+  client.setWanted(false);
+  await assert.rejects(client.request('GetPlayStatus'), isKind('stopped'));
+  await assert.rejects(client.open(), isKind('stopped'));
+  await sleep(30);
+  assert.equal(sim.connections, 0);
+  client.setWanted(true);
+  assert.equal(await client.request('IsAlive'), true, 'wanted again, it works again');
+});
+
 test('closing while still connecting leaves nothing open', async () => {
   const { sim, client } = await setup();
   const opening = client.open();

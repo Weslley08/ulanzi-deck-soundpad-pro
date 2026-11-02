@@ -165,3 +165,16 @@ test('the panel has no background of its own, as the store asks, and no copyrigh
   assert.doesNotMatch(read('property-inspector/soundpad/inspector.css'), /body\s*\{[^}]*background/);
   assert.doesNotMatch(html, /©|copyright/i);
 });
+
+test('store.json passes the checks of the Community Store, and says the plugin is independent', () => {
+  const store = JSON.parse(readFileSync(new URL('../store.json', import.meta.url), 'utf8'));
+  const isTextList = (value) => Array.isArray(value) && value.every((item) => typeof item === 'string');
+  assert.equal(typeof store.cover, 'string');
+  assert.ok(isTextList(store.screenshots));
+  assert.ok(isTextList(store.tags));
+  for (const image of [store.cover, ...store.screenshots]) assert.ok(existsSync(new URL(`../${image}`, import.meta.url)), image);
+  assert.deepEqual(store.deviceTypes, ['deck']);
+  assert.match(store.longDescription, /Not affiliated with Leppsoft or Ulanzi/);
+  assert.match(store.longDescription, /Sem vínculo com a Leppsoft nem com a Ulanzi/);
+  assert.ok(!store.longDescription.includes('**'), 'the store shows this as plain text');
+});

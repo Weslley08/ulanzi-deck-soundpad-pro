@@ -55,6 +55,17 @@ test('nothing connects until a key subscribes, and everything stops when the las
   assert.equal(service.library, null);
 });
 
+test('the last key leaving in the middle of the handshake leaves no connection open', async () => {
+  const { sim, service } = await setup({ delayMs: 15 });
+  const sub = service.subscribe({});
+  // The sync catches its own failure and the handshake goes on to its next request.
+  for (let i = 0; i < 500 && sim.countOf('GetCategories') === 0; i += 1) await sleep(2);
+  sub.close();
+  await sleep(300);
+  assert.equal(sim.connections, 0);
+  assert.equal(service.state, 'disabled');
+});
+
 test('many keys share one connection and one read of the library', async () => {
   const { sim, service } = await setup({ sounds: makeSounds(300) });
   const subs = Array.from({ length: 24 }, () => service.subscribe({}));

@@ -63,6 +63,9 @@ export class PipeClient extends EventEmitter {
   #current = null;
   #urgentCount = 0;
   #abortOpening = false;
+  // Set once the owner said nothing needs the pipe: from then on no request may open it again, or a
+  // request still in flight from before would leave a connection open with no key on the deck.
+  #released = false;
 
   constructor({
     path = PIPE_PATH,
@@ -96,6 +99,7 @@ export class PipeClient extends EventEmitter {
    * growing wait; while not, nothing runs at all.
    */
   setWanted(wanted) {
+    this.#released = !wanted;
     if (wanted === this.#wanted) return;
     this.#wanted = wanted;
     if (wanted) {
@@ -116,6 +120,7 @@ export class PipeClient extends EventEmitter {
   /** @returns {Promise<void>} resolves once connected */
   open() {
     if (this.state === 'open') return Promise.resolve();
+    if (this.#released) return Promise.reject(new SoundpadError('stopped'));
     if (this.#opening) return this.#opening;
     this.state = 'connecting';
     this.#abortOpening = false;
@@ -195,6 +200,7 @@ export class PipeClient extends EventEmitter {
     }
     const { kind } = COMMANDS[name];
     const wait = timeoutMs ?? (kind === 'xml' ? LIST_TIMEOUT_MS : DEFAULT_TIMEOUT_MS);
+    if (this.#released) return Promise.reject(new SoundpadError('stopped'));
     if (this.#queue.length >= MAX_QUEUE) return Promise.reject(new SoundpadError('busy'));
     return new Promise((resolve, reject) => {
       const job = { text, kind, timeoutMs: wait, resolve, reject, urgent };
