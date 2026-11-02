@@ -1,7 +1,7 @@
 name: Gate
 
-# Everything a change must pass before it merges: the branch rules, tests, coverage, the zip, licenses
-# and known vulnerabilities. It also runs each week, because problems get found after the last pull request.
+# The jobs are in Weslley08/ulanzi-plugin-pipeline. This file says when they run and what differs for this plugin.
+# It also runs each week, because problems get found after the last pull request.
 on:
   pull_request:
     # edited: changing the base or ticking a box has to run the branch rules again.
@@ -12,7 +12,6 @@ on:
     - cron: '23 4 * * 1'
   workflow_dispatch:
 
-# pull_request (never pull_request_target) gives forks no secrets and a read-only token.
 permissions:
   contents: read
 
@@ -21,157 +20,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  rules:
-    name: Branch flow
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .nvmrc
-      - run: node scripts/flow.mjs check-pull-request
-        env:
-          PR_BASE: ${{ github.base_ref }}
-          PR_HEAD: ${{ github.head_ref }}
-          PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
-          PR_BODY: ${{ github.event.pull_request.body }}
-
-  # Each job below waits for the rules, so a wrong base or an unticked box does not run everything for nothing.
-  # A skipped job does not hide a failure: the rules are red in that same run, and they block the merge.
-  workflows:
-    name: Workflows
-    needs: rules
-    if: ${{ !failure() && !cancelled() && github.event_name != 'schedule' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Lint every workflow
-        uses: docker://rhysd/actionlint@sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9 # 1.7.7
-        with:
-          args: -color
-
-  test:
-    name: Test (${{ matrix.os }})
-    needs: rules
-    if: ${{ !failure() && !cancelled() && github.event_name != 'schedule' }}
-    runs-on: ${{ matrix.os }}
-    # A hang must fail early instead of holding a runner for six hours.
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        # Soundpad and its remote control run on Windows only. Linux is here because it is what most forks develop on.
-        os: [windows-latest, ubuntu-latest]
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm run setup
-      - run: npm run typecheck
-      - run: npm test
-
-  coverage:
-    name: Coverage
-    needs: rules
-    if: ${{ !failure() && !cancelled() && github.event_name != 'schedule' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm run setup
-      - run: npm run test:coverage
-
-  package:
-    name: Package
-    needs: rules
-    if: ${{ !failure() && !cancelled() }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm run setup
-      - run: npm run package
-      - run: npm run verify:package
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: plugin-zip
-          path: dist/*.zip
-          retention-days: 14
-          if-no-files-found: error
-
-  security:
-    name: Security
-    needs: rules
-    if: ${{ !failure() && !cancelled() }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm run setup
-      - run: npm run audit
-      - run: npm run check:sdk
-        if: github.event_name != 'schedule'
-      # The SDK is copied into the plugin, so npm audit and Dependabot never see it.
-      - name: Ulanzi SDK copies and upstream changes
-        run: npm run check:sdk -- --upstream
-        if: github.event_name == 'schedule'
-      - run: npm run check:licenses
-      - run: npm run package
-      - run: npm run check:secrets
-
-  analyze:
-    needs: rules
-    if: ${{ !failure() && !cancelled() }}
-    runs-on: ubuntu-latest
+  gate:
+    # A called workflow can only keep or lower these, so what its CodeQL job needs has to be granted here.
     permissions:
       contents: read
       security-events: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
-        with:
-          languages: javascript-typescript
-          # Generated outlines add nothing to analyze and slow the scan down.
-          config: |
-            paths-ignore:
-              - com.ulanzi.soundpadpro.ulanziPlugin/plugin/render/glyphs
-      - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
-
-  review:
-    needs: rules
-    if: ${{ !failure() && !cancelled() && github.event_name == 'pull_request' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
-        with:
-          fail-on-severity: low
+    uses: Weslley08/ulanzi-plugin-pipeline/.github/workflows/gate.yml@v1
+    with:
+      # Soundpad and its remote control run on Windows only. Linux is here because it is what most forks develop on.
+      test-os: '["windows-latest","ubuntu-latest"]'
+      # Generated outlines add nothing to analyze and slow the scan down.
+      codeql-config: |
+        paths-ignore:
+          - com.ulanzi.soundpadpro.ulanziPlugin/plugin/render/glyphs
+    secrets:
+      AUTOMATION_TOKEN: ${{ secrets.AUTOMATION_TOKEN }}
