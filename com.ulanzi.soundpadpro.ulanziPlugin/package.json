@@ -1,0 +1,13 @@
+{
+  "name": "soundpad-controller-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Runtime dependencies of the Soundpad Controller plugin. Shipped inside the plugin package.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "engines": { "node": ">=20.12.2" },
+  "dependencies": {
+    "@resvg/resvg-wasm": "2.6.2",
+    "ws": "8.22.1"
+  }
+}
