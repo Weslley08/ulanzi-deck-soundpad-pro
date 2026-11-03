@@ -23,6 +23,9 @@ export const COMMANDS = Object.freeze({
   GetSoundlist: { args: [], kind: 'xml', since: '1.0.0' },
   GetSoundlistRange: { args: ['index', 'index'], kind: 'xml', since: '1.0.0' },
   GetCategories: { args: ['bool', 'bool'], kind: 'xml', since: '1.1.0' },
+  // Read-only. Seen in the public .NET client; the version that added them is not documented, so an older Soundpad is told apart by its R-404.
+  GetPlaybackPositionInMs: { args: [], kind: 'number', since: '1.0.0' },
+  GetPlaybackDurationInMs: { args: [], kind: 'number', since: '1.0.0' },
   GetPlayStatus: { args: [], kind: 'status', since: '1.0.0' },
   DoPlaySound: { args: ['index'], kind: 'ok', since: '1.0.0' },
   DoPlaySoundOn: { args: ['index', 'bool', 'bool'], kind: 'ok', since: '1.0.0' },

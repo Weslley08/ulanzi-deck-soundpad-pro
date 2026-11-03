@@ -17,6 +17,11 @@ export const STATE_COLORS = {
   disabled: '#4A4D53',
 };
 const READY_RING = '#2A2C31';
+export const PROGRESS_STEPS = 50;
+const BAR_X = 30;
+const BAR_Y = 128;
+const BAR_WIDTH = 84;
+const BAR_HEIGHT = 6;
 const SUBTITLE = '#A9ADB5';
 
 /** The mark in the corner for each state, so a color-blind user can still tell them apart. */
@@ -30,7 +35,10 @@ const STATE_MARKS = { playing: 'playing', paused: 'pause', error: 'warning', una
  *   accent?: string,
  *   title?: string,
  *   badge?: string,
+ *   idle?: boolean,
+ *   progress?: number | null,
  * }} FaceView
+ *   idle shows a quiet mark in the corner (a sound that is not playing); progress is 0 to 50 steps of the bar.
  */
 
 const TITLE_SIZE = 19;
@@ -77,6 +85,18 @@ export function faceSvg(view) {
   if (view.badge) {
     const badge = fit(FONT.small, view.badge, 64, 16, 11);
     out += text(FONT.small, badge.text, 18, 30, badge.size, { anchor: 'start', fill: SUBTITLE });
+  }
+
+  const progress = view.progress;
+  if (typeof progress === 'number' && Number.isInteger(progress) && progress >= 0 && (state === 'playing' || state === 'paused')) {
+    const done = Math.min(progress, PROGRESS_STEPS);
+    out += `<rect x="${BAR_X}" y="${BAR_Y}" width="${BAR_WIDTH}" height="${BAR_HEIGHT}" rx="${BAR_HEIGHT / 2}" fill="${READY_RING}"/>`;
+    if (done) out += `<rect x="${BAR_X}" y="${BAR_Y}" width="${(BAR_WIDTH * done) / PROGRESS_STEPS}" height="${BAR_HEIGHT}" rx="${BAR_HEIGHT / 2}" fill="${stateColor}"/>`;
+  }
+
+  if (view.idle === true && state === 'ready') {
+    out += `<circle cx="${SIZE - 26}" cy="26" r="15" fill="${READY_RING}"/>`;
+    out += symbol('stop', SIZE - 36, 16, 20, SUBTITLE, READY_RING);
   }
 
   const mark = STATE_MARKS[state];

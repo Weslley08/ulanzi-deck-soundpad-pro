@@ -17,6 +17,9 @@ export const PAUSED_POLL_MS = 1_500;
 // Soundpad itself are noticed within this long.
 export const IDLE_POLL_MS = 3_000;
 export const VOLUME_STEP = 10;
+// The bar on a key moves in this many steps (render/face.js draws the same number), so a key is drawn
+// again only when the bar moves a visible amount.
+export const PROGRESS_STEPS = 50;
 export const MIN_RC_VERSION = '1.0.0';
 
 const OUTPUTS = {
@@ -30,14 +33,15 @@ const OUTPUTS = {
 class Subscription {
   /**
    * @param {SoundpadService} service
-   * @param {{ active?: boolean, onChange?: (what: string) => void, wantsVolume?: boolean, wantsStatus?: boolean }} options
+   * @param {{ active?: boolean, onChange?: (what: string) => void, wantsVolume?: boolean, wantsStatus?: boolean, wantsProgress?: boolean }} options
    */
-  constructor(service, { active = true, onChange = () => {}, wantsVolume = false, wantsStatus = false }) {
+  constructor(service, { active = true, onChange = () => {}, wantsVolume = false, wantsStatus = false, wantsProgress = false }) {
     this.service = service;
     this.active = active;
     this.onChange = onChange;
     this.wantsVolume = wantsVolume;
     this.wantsStatus = wantsStatus;
+    this.wantsProgress = wantsProgress;
   }
 
   setActive(active) {
@@ -90,6 +94,12 @@ export class SoundpadService {
   #nowPlaying = null;
   /** @type {{volume: number, muted: boolean}|null} */
   #volume = null;
+  // How far the sound this plugin started has played, in PROGRESS_STEPS. The length is asked once per sound.
+  /** @type {number|null} */
+  #progress = null;
+  /** @type {number|null} */
+  #duration = null;
+  #progressSupported = true;
   /** @type {Promise<void>|null} */
   #handshake = null;
   #disposed = false;
@@ -129,6 +139,15 @@ export class SoundpadService {
     return this.#volume;
   }
 
+  /**
+   * How far a sound has played, as a whole number from 0 to PROGRESS_STEPS, or null when it is not the
+   * one playing or Soundpad does not say.
+   * @param {string} id
+   */
+  progressFor(id) {
+    return id && this.#nowPlaying?.id === id ? this.#progress : null;
+  }
+
   /** What the panel shows under "Connection". Short codes only: no paths, titles or raw errors. */
   diagnostics() {
     return {
@@ -149,7 +168,7 @@ export class SoundpadService {
   }
 
   /**
-   * @param {{active?: boolean, onChange?: (what: string) => void, wantsVolume?: boolean, wantsStatus?: boolean}} options
+   * @param {{active?: boolean, onChange?: (what: string) => void, wantsVolume?: boolean, wantsStatus?: boolean, wantsProgress?: boolean}} options
    */
   subscribe(options = {}) {
     const sub = new Subscription(this, options);
@@ -216,12 +235,20 @@ export class SoundpadService {
   /**
    * Plays a sound a key saved, after checking that the position still holds that sound.
    * @param {import('./identity.js').SoundRef} ref
-   * @param {{output?: 'both'|'speakers'|'mic'|'default', mode?: 'play'|'toggle'|'restart'}} options
-   * @returns {Promise<{result: 'played'|'stopped'|'missing'|'offline'|'failed', sound?: import('./identity.js').SoundEntry}>}
+   * @param {{output?: 'both'|'speakers'|'mic'|'default', mode?: 'pause'|'play'|'toggle'|'restart'}} options
+   * @returns {Promise<{result: 'played'|'stopped'|'paused'|'resumed'|'missing'|'offline'|'failed', sound?: import('./identity.js').SoundEntry}>}
    */
-  async playSound(ref, { output = 'both', mode = 'play' } = {}) {
+  async playSound(ref, { output = 'both', mode = 'pause' } = {}) {
     if (!(await this.#ensureConnected())) return { result: 'offline' };
     try {
+      if (mode === 'pause' && this.#nowPlaying && ref.id && this.#nowPlaying.id === ref.id) {
+        const status = await this.#readPlayStatus(true);
+        if (status === 'PLAYING' || status === 'PAUSED') {
+          await this.#client.request('DoTogglePause', [], { urgent: true });
+          const after = await this.#readPlayStatus(true);
+          return { result: after === 'PAUSED' ? 'paused' : 'resumed' };
+        }
+      }
       if (mode === 'toggle' && this.#nowPlaying && ref.id && this.#nowPlaying.id === ref.id) {
         const status = await this.#readPlayStatus(true);
         if (status === 'PLAYING' || status === 'PAUSED' || status === 'SEEKING') {
@@ -397,6 +424,9 @@ export class SoundpadService {
     this.#libraryStale = false;
     this.#volume = null;
     this.#nowPlaying = null;
+    this.#progress = null;
+    this.#duration = null;
+    this.#progressSupported = true;
     this.#playStatus = 'STOPPED';
     this.#rangeCheck = 'unknown';
     this.#state = 'disabled';
@@ -534,9 +564,14 @@ export class SoundpadService {
   // --- playback status ---
 
   #setPlayback(status, nowPlaying) {
+    const before = this.#nowPlaying;
     const changed = status !== this.#playStatus || nowPlaying?.id !== this.#nowPlaying?.id;
     this.#playStatus = status;
     this.#nowPlaying = status === 'STOPPED' ? null : nowPlaying;
+    if (!this.#nowPlaying || nowPlaying?.id !== before?.id) {
+      this.#duration = null;
+      this.#progress = null;
+    }
     if (changed) this.#notify('playback');
     this.#syncTimersToDemand();
   }
@@ -545,6 +580,34 @@ export class SoundpadService {
     const status = await this.#client.request('GetPlayStatus', [], { urgent });
     this.#setPlayback(status, status === 'STOPPED' ? null : this.#nowPlaying);
     return status;
+  }
+
+  /** Two small numbers per poll, and only while a key that shows a bar is on screen and one of its sounds plays. */
+  async #readProgress() {
+    if (!this.#progressSupported || !this.#nowPlaying || this.#playStatus === 'STOPPED') return;
+    if (![...this.#subs].some((sub) => sub.active && sub.wantsProgress)) return;
+    const playing = this.#nowPlaying;
+    try {
+      const duration = this.#duration ?? Number(await this.#client.request('GetPlaybackDurationInMs'));
+      this.#duration = duration;
+      const position = Number(await this.#client.request('GetPlaybackPositionInMs'));
+      // The sound changed while asking, so these numbers belong to another one.
+      if (this.#nowPlaying?.id !== playing.id) return;
+      const step = duration > 0 ? Math.round((Math.min(Math.max(position, 0), duration) / duration) * PROGRESS_STEPS) : null;
+      if (step !== this.#progress) {
+        this.#progress = step;
+        this.#notify('progress');
+      }
+    } catch (error) {
+      if (error instanceof SoundpadError && error.kind === 'rejected') {
+        // An older Soundpad without the two commands: keys just show no bar.
+        this.#progressSupported = false;
+        this.#duration = null;
+        this.#progress = null;
+        return;
+      }
+      throw error;
+    }
   }
 
   #hasActiveSubscribers() {
@@ -574,6 +637,7 @@ export class SoundpadService {
       if (this.#state !== 'connected') return;
       try {
         await this.#readPlayStatus(false);
+        await this.#readProgress();
       } catch (error) {
         this.#failure(error, 'status');
         return;

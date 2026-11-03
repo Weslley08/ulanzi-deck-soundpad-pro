@@ -31,11 +31,12 @@ The Java file could not be downloaded from this session (the host was outside th
 | `GetSoundlist()` | 1.0.0 | `<Soundlist>` XML | The library |
 | `GetSoundlist(from, to)` | 1.0.0 | `<Soundlist>` XML | Checking one position before playing it (see below) |
 | `GetCategories(withSounds, withIcons)` | 1.1.0 | `<Categories>` XML | Categories, with `true, false` |
+| `GetPlaybackPositionInMs()`, `GetPlaybackDurationInMs()` | not documented, tried on any version | milliseconds | The bar on a key. Seen in the public .NET client only. The length is asked once per sound and the position at each status poll (every 500 ms while a sound plays), and only while a key that shows a bar is on screen. An R-404 turns the bar off until the next connection |
 | `GetPlayStatus()` | 1.0.0 | `STOPPED`, `PLAYING`, `PAUSED` or `SEEKING` | Key colors |
 | `DoPlaySound(index)` | 1.0.0 | `R-200` | Output "As set in Soundpad" |
 | `DoPlaySound(index, speakers, mic)` | 1.0.0 | `R-200` | Output chosen on the key |
 | `DoStopSound()` | 1.0.0 | `R-200` | Stop, toggle and restart modes |
-| `DoTogglePause()` | 1.0.0 | `R-200` | Pause and resume |
+| `DoTogglePause()` | 1.0.0 | `R-200` | Pause and resume. Also the second press of a favorite in the default "pause" mode; `GetPlayStatus` after it says which happened |
 | `DoPlayNextSound()`, `DoPlayPreviousSound()` | 1.0.0 | `R-200` | Next and previous |
 | `DoPlayCurrentSoundAgain()` | 1.1.0 | `R-200` | Replay |
 | `DoPlayRandomSound(speakers, mic)` | 1.1.2 | `R-200` | Random |
@@ -66,6 +67,58 @@ The Java file could not be downloaded from this session (the host was outside th
 - **No command reads which sound is playing.** The plugin knows which sound its own keys started, so those keys turn green. A sound started from Soundpad itself, or by another program, turns no favorite green; it only shows on the keys that watch the playback state (stop and pause).
 - **One client at a time.** Another program holding the pipe makes the plugin wait and retry (`pipe-busy`).
 - **Windows only.** There is no remote control on other systems.
+
+## Read again on 2026-11-03
+
+Sources: Leppsoft's [remote control page](https://www.leppsoft.com/soundpad/en/rc/) (still 1.1.2, with no list of commands), the [manual](https://www.leppsoft.com/soundpad/help/manual/tutorial/rc/), the [changelog](https://www.leppsoft.com/soundpad/changelog) and its [archive](https://www.leppsoft.com/soundpad/en/changelog/archive/), and the source of the .NET client [SoundpadConnector](https://github.com/medokin/soundpad-connector) (tested by its maintainer on Soundpad 4.0.35, remote control 1.1.2). The Java reference client still could not be opened from here, so a command that only it would show is missing from this list. Nothing was run against a Soundpad.
+
+### What each version of the interface added
+
+| Interface | Soundpad | Date | Change |
+|---|---|---|---|
+| 1.1.0 | 3.3.0 | 2020-07 | Categories and new functions. Calls are logged (off by default since 3.3.1, turned on with the registry value `logRcCalls`) |
+| 1.1.1 | 3.4.0 | 2021-04 | `DoPlaySoundFromCategory`. Access list so UWP apps can connect. **Return codes now carry additional information about errors** |
+| 1.1.2 | 4.0.0 | 2024-04 | `DoPlayRandomSound`, `DoPlayRandomSoundFromCategory`, `IsTrial`. **The interface is available in the free version.** Fixed a crash when several commands arrived at once |
+| (same) | 4.0.9 | 2024-08 | `GetSoundlist()` returns **color** and **tag** attributes of sounds |
+| (same) | 4.0.29 | 2025-12 | `DoSeekMs` fixed for negative and zero values |
+
+The crash fix in 4.0.0 is one more reason to keep sending one command at a time, as this plugin does. The new return codes mean an answer may be `R-` followed by a code and text we have never captured: the parser takes the three digits after `R-` and ignores the rest, so it should keep working, but only a real answer will say.
+
+### Commands this plugin does not use yet
+
+Read-only, so none of them changes anything:
+
+| Command | Answer | What it could give a key |
+|---|---|---|
+| `GetPlaybackPositionInMs()`, `GetPlaybackDurationInMs()` | number | A progress bar and the time left on the stop key while a sound plays |
+| `GetTitleText()`, `GetStatusBarText()` | text | Unknown. The .NET client has them without a comment. If either names the sound that is playing, it answers the one thing no other command does, and it would contain sound names, so it could never be logged |
+| `GetRecordingPositionInMs()`, `GetRecordingPeak()` | number | A recording timer and a level meter |
+
+They act, but only on playback:
+
+| Command | What it does | What it could give a key |
+|---|---|---|
+| `DoPlaySoundFromCategory(categoryIndex, soundIndex, speakers, mic)` | Plays the sound at a position **inside a category**. `-1` stands for the selected category, and `soundIndex` counts from 1 within it, not in the whole list | A favorite that follows a category's own order |
+| `DoPlayRandomSoundFromCategory(...)` | Plays a random sound of a category | A "random from this category" key. **The arguments are not confirmed**: only the Java client or a capture would say |
+| `DoJumpMs(ms)`, `DoSeekMs(ms)` | Skips relatively, or goes to an absolute position, in the sound that plays | Skip back and forward keys, and restart |
+
+They change Soundpad itself, so the command table keeps them out until the maintainer decides:
+
+| Command | Why it is out |
+|---|---|
+| `DoStartRecording()`, `DoStopRecording()` | A recording ends up in the user's library. It would be a deliberate key press, like Soundpad's own button, but it is the one thing in this interface that writes |
+| `DoSearch(text)`, `DoResetSearch()`, `DoSelectPreviousHit()`, `DoSelectNextHit()`, `DoSelectIndex(n)`, `DoScrollBy(n)`, `DoScrollTo(n)` | They move Soundpad's own window |
+| `DoAddSound(path)`, `DoRemoveSelectedEntries(...)`, `DoUndo()`, `DoRedo()`, `DoSaveSoundlist()` | They change the library |
+
+### Attributes
+
+A sound has `index`, `url`, `artist`, `title`, `color`, `tag`, `duration`, `addedOn`, `lastPlayedOn` and `playCount`. A category has `index`, `type`, `name` and `icon`, with its sounds inside. Neither `color` nor `icon` has a documented format: they could be hex colors and image data, or something else. A captured answer is the only way to know, and `icon` comes only when `GetCategories(withSounds, withIcons)` is asked with icons, which would make the answer much larger.
+
+### What this plugin could not do before and still cannot
+
+- It cannot know which sound plays when Soundpad started it. Only `GetTitleText` or `GetStatusBarText` might, and nobody has said they do.
+- It cannot set the microphone volume: `SetVolume` is the speaker level.
+- It cannot hear about changes. It polls, as the table above says.
 
 ## Not used
 

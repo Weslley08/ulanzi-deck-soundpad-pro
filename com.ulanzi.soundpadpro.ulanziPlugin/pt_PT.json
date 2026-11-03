@@ -63,6 +63,7 @@
     "output.speakers": "Só alto-falantes",
     "output.mic": "Só microfone",
     "output.default": "Como estiver no Soundpad",
+    "mode.pause": "Tocar, e pausar ou retomar ao apertar de novo",
     "mode.play": "Sempre tocar",
     "mode.toggle": "Tocar, ou parar se estiver tocando",
     "mode.restart": "Parar o som atual e tocar",

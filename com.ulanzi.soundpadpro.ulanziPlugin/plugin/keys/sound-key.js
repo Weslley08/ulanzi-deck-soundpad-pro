@@ -1,6 +1,6 @@
 // A favorite: one sound on one key, found again by what it is, never by where it was.
 import { normalizeSoundSettings, soundRef } from '../settings.js';
-import { BaseKey, connectionView } from './base-key.js';
+import { BaseKey, PRESSED, connectionView } from './base-key.js';
 
 export class SoundKey extends BaseKey {
   settings = normalizeSoundSettings();
@@ -8,7 +8,7 @@ export class SoundKey extends BaseKey {
 
   constructor(context, deps) {
     super(context, deps);
-    this.#sub = this.service.subscribe({ active: this.active, onChange: (what) => this.onServiceChange(what) });
+    this.#sub = this.service.subscribe({ active: this.active, onChange: (what) => this.onServiceChange(what), wantsProgress: true });
   }
 
   updateSettings(param) {
@@ -60,7 +60,15 @@ export class SoundKey extends BaseKey {
     if (found.status !== 'ok') return { ...base, state: 'unavailable', symbol, title: name(settings.soundTitle) || t('Sound not found') };
     const offline = connectionView(this.service, t, settings.background);
     if (offline && offline.state === 'error') return { ...offline, title: name(found.sound.title) || offline.title };
-    return { ...base, state: this.#playState(found.sound), symbol, title: name(found.sound.title) };
+    const state = this.#playState(found.sound);
+    return { ...base, state, symbol, title: name(found.sound.title), ...this.#feedback(state, found.sound) };
+  }
+
+  /** The corner mark when idle, and the bar while this key's sound plays or is paused. */
+  #feedback(state, sound) {
+    if (!this.settings.feedback) return {};
+    if (state === 'ready') return { idle: true };
+    return { progress: this.service.progressFor(sound.id) };
   }
 
   #playState(sound) {
@@ -88,7 +96,7 @@ export class SoundKey extends BaseKey {
       return;
     }
     const { result } = await this.service.playSound(ref, { output: this.settings.output, mode: this.settings.mode });
-    if (result !== 'played' && result !== 'stopped') this.alert();
+    if (!PRESSED.has(result)) this.alert();
     this.refresh();
   }
 

@@ -16,7 +16,7 @@
     "install": "Download `{zip}`, not the **Source code** archives, which will not start, and follow the [installation steps]({blob}/docs/INSTALL.md). You need Soundpad on Windows.",
     "aboutHeading": "About",
     "about": "The plugin talks to Soundpad only on this computer, through Soundpad's own remote control, and sends nothing over the internet. Soundpad is a product of Leppsoft. This project is not affiliated with Leppsoft or Ulanzi.",
-    "checks": "The automated checks passed on Windows and Linux, and found no known vulnerabilities in the dependencies and no secret patterns. These tools only find problems that are already known. This zip started on Windows against a fake host and a simulated Soundpad. No test ran against a real Soundpad or a real deck.",
+    "checks": "The automated tests passed on Windows, and found no known vulnerabilities in the dependencies and no secret patterns. These tools only find problems that are already known. This zip started on Windows against a fake host and a simulated Soundpad. No test ran against a real Soundpad or a real deck.",
     "measuredAgainst": "a fake host and a simulated Soundpad"
   }
 }
