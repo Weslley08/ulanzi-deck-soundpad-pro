@@ -27,8 +27,8 @@ jobs:
       security-events: write
     uses: Weslley08/ulanzi-plugin-pipeline/.github/workflows/gate.yml@v1
     with:
-      # Soundpad and its remote control run on Windows only. Linux is here because it is what most forks develop on.
-      test-os: '["windows-latest","ubuntu-latest"]'
+      # Soundpad and its remote control run on Windows only, so that is the one system the tests need.
+      test-os: '["windows-latest"]'
       # Generated outlines add nothing to analyze and slow the scan down.
       codeql-config: |
         paths-ignore:

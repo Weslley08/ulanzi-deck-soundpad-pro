@@ -14,7 +14,7 @@ npm run setup
 npm test
 ```
 
-Open a pull request against `develop`. CI runs the tests on Windows and Linux, measures coverage, checks licenses, builds the zip and checks it. Keep each pull request to one change.
+Open a pull request against `develop`. CI runs the tests on Windows, measures coverage, checks licenses, builds the zip and checks it. Keep each pull request to one change.
 
 ## Commands
 
