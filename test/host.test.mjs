@@ -163,6 +163,7 @@ test('a chosen sound plays on press, on the outputs chosen, and the key turns gr
 });
 
 test('after sounds are added and moved in Soundpad, the favorite still plays its own sound', async () => {
+  sim.status = 'STOPPED';
   sim.addSound({ url: 'C:\\Sounds\\fresh.mp3', title: 'Fresh' }, 0);
   sim.moveSound(6, 20);
   send({ cmd: 'run', ...keyMessage('sound', '0_0', 'a1') });

@@ -98,9 +98,9 @@ test('a press plays the saved sound on the chosen outputs', async () => {
   assert.deepEqual(sim.lastOutput, { speakers: false, mic: true });
   assert.equal(service.playStatus, 'PLAYING');
   assert.equal(service.nowPlaying.id, sound.id);
-  await service.playSound(refOf(sound), { output: 'default' });
+  await service.playSound(refOf(sound), { output: 'default', mode: 'play' });
   assert.equal(sim.lastOutput, 'default', "Soundpad's own output setting");
-  await service.playSound(refOf(sound), { output: 'both' });
+  await service.playSound(refOf(sound), { output: 'both', mode: 'play' });
   assert.deepEqual(sim.lastOutput, { speakers: true, mic: true });
 });
 
@@ -148,6 +148,85 @@ test('when Soundpad cannot answer the one-entry check, only a freshly read list 
   assert.equal(played.result, 'played');
   assert.equal(sim.sounds[sim.current - 1].title, 'Sound 4');
   assert.ok(logs.some((line) => line.includes('one-entry check not available')));
+});
+
+test('the default mode pauses the sound when its own key is pressed again, and resumes on the next press', async () => {
+  const { sim, service } = await setup();
+  await connected(service);
+  const ref = refOf(service.library.sounds[0]);
+  assert.equal((await service.playSound(ref)).result, 'played');
+  assert.equal((await service.playSound(ref)).result, 'paused');
+  assert.equal(sim.status, 'PAUSED');
+  assert.equal(service.playStatus, 'PAUSED');
+  assert.equal((await service.playSound(ref)).result, 'resumed');
+  assert.equal(sim.status, 'PLAYING');
+  assert.equal(sim.countOf('DoPlaySound'), 1, 'pausing never starts the sound again');
+});
+
+test('pause mode plays another sound at once, and plays this one again once it has ended', async () => {
+  const { sim, service } = await setup();
+  await connected(service);
+  const [first, second] = service.library.sounds.map(refOf);
+  await service.playSound(first);
+  assert.equal((await service.playSound(second)).result, 'played');
+  assert.equal(sim.current, 2);
+  sim.status = 'STOPPED';
+  assert.equal((await service.playSound(second)).result, 'played');
+});
+
+test('progress is read while a sound plays: the length once, the position at every poll', async () => {
+  const { sim, service, timers } = await setup();
+  await connected(service, { wantsProgress: true });
+  const sound = service.library.sounds[0];
+  assert.equal(service.progressFor(sound.id), null);
+  await service.playSound(refOf(sound));
+  sim.positionMs = 2_500;
+  await timers.fire(PLAYING_POLL_MS);
+  assert.equal(service.progressFor(sound.id), 13);
+  assert.equal(service.progressFor(service.library.sounds[1].id), null, 'only the sound that plays');
+  sim.positionMs = 10_000;
+  await timers.fire(PLAYING_POLL_MS);
+  assert.equal(service.progressFor(sound.id), 50);
+  assert.equal(sim.countOf('GetPlaybackDurationInMs'), 1);
+  assert.equal(sim.countOf('GetPlaybackPositionInMs'), 2);
+  sim.status = 'STOPPED';
+  await timers.fire(PLAYING_POLL_MS);
+  assert.equal(service.progressFor(sound.id), null);
+});
+
+test('a new sound starts its bar from the new length, not the old one', async () => {
+  const { sim, service, timers } = await setup();
+  await connected(service, { wantsProgress: true });
+  const [first, second] = service.library.sounds;
+  await service.playSound(refOf(first));
+  sim.positionMs = 5_000;
+  await timers.fire(PLAYING_POLL_MS);
+  assert.equal(service.progressFor(first.id), 25);
+  await service.playSound(refOf(second));
+  assert.equal(service.progressFor(second.id), null, 'nothing is claimed before it is read');
+  sim.durationMs = 20_000;
+  sim.positionMs = 5_000;
+  await timers.fire(PLAYING_POLL_MS);
+  assert.equal(service.progressFor(second.id), 13);
+});
+
+test('nothing is asked for the bar when no key shows one, or when Soundpad lacks the commands', async () => {
+  const quiet = await setup();
+  await connected(quiet.service);
+  await quiet.service.playSound(refOf(quiet.service.library.sounds[0]));
+  await quiet.timers.fire(PLAYING_POLL_MS);
+  assert.equal(quiet.sim.countOf('GetPlaybackPositionInMs'), 0);
+
+  const old = await setup();
+  old.sim.playbackSupported = false;
+  await connected(old.service, { wantsProgress: true });
+  const sound = old.service.library.sounds[0];
+  await old.service.playSound(refOf(sound));
+  await old.timers.fire(PLAYING_POLL_MS);
+  await old.timers.fire(PLAYING_POLL_MS);
+  assert.equal(old.service.progressFor(sound.id), null);
+  assert.equal(old.service.state, 'connected', 'a missing command is not a broken connection');
+  assert.equal(old.sim.countOf('GetPlaybackDurationInMs'), 1, 'asked once, then given up');
 });
 
 test('toggle mode stops the sound when its own key is pressed again', async () => {

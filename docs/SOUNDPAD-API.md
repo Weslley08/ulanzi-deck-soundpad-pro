@@ -31,11 +31,12 @@ The Java file could not be downloaded from this session (the host was outside th
 | `GetSoundlist()` | 1.0.0 | `<Soundlist>` XML | The library |
 | `GetSoundlist(from, to)` | 1.0.0 | `<Soundlist>` XML | Checking one position before playing it (see below) |
 | `GetCategories(withSounds, withIcons)` | 1.1.0 | `<Categories>` XML | Categories, with `true, false` |
+| `GetPlaybackPositionInMs()`, `GetPlaybackDurationInMs()` | not documented, tried on any version | milliseconds | The bar on a key. Seen in the public .NET client only. The length is asked once per sound and the position at each status poll (every 500 ms while a sound plays), and only while a key that shows a bar is on screen. An R-404 turns the bar off until the next connection |
 | `GetPlayStatus()` | 1.0.0 | `STOPPED`, `PLAYING`, `PAUSED` or `SEEKING` | Key colors |
 | `DoPlaySound(index)` | 1.0.0 | `R-200` | Output "As set in Soundpad" |
 | `DoPlaySound(index, speakers, mic)` | 1.0.0 | `R-200` | Output chosen on the key |
 | `DoStopSound()` | 1.0.0 | `R-200` | Stop, toggle and restart modes |
-| `DoTogglePause()` | 1.0.0 | `R-200` | Pause and resume |
+| `DoTogglePause()` | 1.0.0 | `R-200` | Pause and resume. Also the second press of a favorite in the default "pause" mode; `GetPlayStatus` after it says which happened |
 | `DoPlayNextSound()`, `DoPlayPreviousSound()` | 1.0.0 | `R-200` | Next and previous |
 | `DoPlayCurrentSoundAgain()` | 1.1.0 | `R-200` | Replay |
 | `DoPlayRandomSound(speakers, mic)` | 1.1.2 | `R-200` | Random |

@@ -47,6 +47,10 @@ export class SoundpadSimulator {
   volume = 70;
   muted = false;
   lastOutput = null;
+  /** What GetPlaybackPositionInMs and GetPlaybackDurationInMs answer, set by the test. */
+  positionMs = 0;
+  durationMs = 10_000;
+  playbackSupported = true;
   /** @type {Map<string, {mode: 'silence'|'garbage'|'close'|'reject'|'delay', times: number, code?: number, ms?: number}>} */
   #faults = new Map();
   #server = null;
@@ -230,6 +234,8 @@ export class SoundpadSimulator {
         return this.#soundlist();
       case 'GetCategories': return this.#since('1.1.0') ? this.#categoriesXml(bool(0)) : 'R-404';
       case 'GetPlayStatus': return this.status;
+      case 'GetPlaybackPositionInMs': return this.playbackSupported ? String(this.positionMs) : 'R-404';
+      case 'GetPlaybackDurationInMs': return this.playbackSupported ? String(this.durationMs) : 'R-404';
       case 'DoPlaySound': return this.#startPlaying(int(0), args.length === 3 ? { speakers: bool(1), mic: bool(2) } : 'default');
       case 'DoStopSound':
         this.status = 'STOPPED';

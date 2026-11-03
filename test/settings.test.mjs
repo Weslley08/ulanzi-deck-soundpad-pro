@@ -13,12 +13,12 @@ const ID = 'a'.repeat(24);
 test('an empty or broken favorite falls back to safe defaults', () => {
   assert.deepEqual(normalizeSoundSettings({}), {
     soundId: '', soundAlt: '', soundIndex: 0, soundTitle: '', label: '', icon: 'play', accent: 'white',
-    output: 'both', mode: 'play', feedback: true, background: 'black', showTitle: true,
+    output: 'both', mode: 'pause', feedback: true, background: 'black', showTitle: true,
   });
   const bad = normalizeSoundSettings({ soundId: '../x', soundAlt: 'zz', soundIndex: 'drop table', output: 'everywhere', mode: 'loop', icon: '<svg>', background: 'white', label: 'x'.repeat(200) });
   assert.equal(bad.soundId, '');
   assert.equal(bad.output, 'both');
-  assert.equal(bad.mode, 'play');
+  assert.equal(bad.mode, 'pause');
   assert.equal(bad.icon, 'play');
   assert.equal(bad.background, 'black');
   assert.equal(bad.label.length, 40);
@@ -51,7 +51,7 @@ test('a navigator key keeps to its group, its position within limits', () => {
 
 test('group options and saved places are checked', () => {
   assert.deepEqual(normalizeGroupOptions({ positions: '99', startPage: 0, startCategory: 'evil', persist: 'off' }), {
-    positions: 0, startCategory: '', startPage: 1, persist: false, output: 'both', mode: 'play',
+    positions: 0, startCategory: '', startPage: 1, persist: false, output: 'both', mode: 'pause',
   });
   assert.deepEqual(normalizeNavState({ mode: 'sounds', category: '' }), { mode: 'categories', category: '', page: 0 });
   assert.deepEqual(normalizeNavState({ mode: 'sounds', category: 'all', page: 3 }), { mode: 'sounds', category: 'all', page: 3 });
