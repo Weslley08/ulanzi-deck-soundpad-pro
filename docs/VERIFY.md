@@ -45,7 +45,7 @@ Setup: download the zip from the draft release, or run `npm run package`, and in
 
 - [ ] Stop is dim while nothing plays and green while something plays, including a sound started from Soundpad itself (within 3 seconds)
 - [ ] Pause turns yellow and resumes; next, previous, random and replay do what they say
-- [ ] Volume up and down move Soundpad's slider in steps of 10 and show the value; mute shows the crossed speaker and Soundpad's mute
+- [ ] Volume up and down move Soundpad's slider by 1 per press and by 10 while held (letting go stops it, and the D200H sends a release) and show the value; mute shows the crossed speaker and Soundpad's mute
 
 ## Life cycle
 

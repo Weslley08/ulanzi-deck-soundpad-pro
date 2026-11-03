@@ -16,7 +16,9 @@ export const PAUSED_POLL_MS = 1_500;
 // Only while a key that shows Soundpad's own state (pause, stop) is on screen: sounds started from
 // Soundpad itself are noticed within this long.
 export const IDLE_POLL_MS = 3_000;
-export const VOLUME_STEP = 10;
+// A press moves the volume by one; holding the key moves it by ten, to the next multiple of ten.
+export const VOLUME_STEP = 1;
+export const VOLUME_BIG_STEP = 10;
 // The bar on a key moves in this many steps (render/face.js draws the same number), so a key is drawn
 // again only when the bar moves a visible amount.
 export const PROGRESS_STEPS = 50;
@@ -279,10 +281,10 @@ export class SoundpadService {
   /**
    * One of the playback controls.
    * @param {'stop'|'pause'|'next'|'previous'|'random'|'replay'|'volumeUp'|'volumeDown'|'mute'} action
-   * @param {{output?: 'both'|'speakers'|'mic'|'default'}} [options]
+   * @param {{output?: 'both'|'speakers'|'mic'|'default', step?: number}} [options]
    * @returns {Promise<{result: 'done'|'offline'|'failed'|'unsupported'}>}
    */
-  async control(action, { output = 'both' } = {}) {
+  async control(action, { output = 'both', step = VOLUME_STEP } = {}) {
     if (!(await this.#ensureConnected())) return { result: 'offline' };
     const request = (name, args = []) => this.#client.request(name, args, { urgent: true });
     try {
@@ -316,8 +318,11 @@ export class SoundpadService {
         case 'volumeUp':
         case 'volumeDown': {
           const current = await request('GetVolume');
-          const step = action === 'volumeUp' ? VOLUME_STEP : -VOLUME_STEP;
-          const target = Math.min(100, Math.max(0, Math.round((Number(current) + step) / VOLUME_STEP) * VOLUME_STEP));
+          const up = action === 'volumeUp';
+          const now = Number(current);
+          // A big step lands on a multiple of it, so holding goes 63, 70, 80 and 63, 60, 50.
+          const moved = step <= 1 ? now + (up ? 1 : -1) : up ? (Math.floor(now / step) + 1) * step : (Math.ceil(now / step) - 1) * step;
+          const target = Math.min(100, Math.max(0, moved));
           await request('SetVolume', [target]);
           await this.refreshVolume();
           break;
