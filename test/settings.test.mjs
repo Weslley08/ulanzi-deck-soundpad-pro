@@ -13,7 +13,7 @@ const ID = 'a'.repeat(24);
 test('an empty or broken favorite falls back to safe defaults', () => {
   assert.deepEqual(normalizeSoundSettings({}), {
     soundId: '', soundAlt: '', soundIndex: 0, soundTitle: '', label: '', icon: 'play', accent: 'white',
-    output: 'both', mode: 'pause', feedback: true, background: 'black', showTitle: true,
+    output: 'both', mode: 'pause', background: 'black', showTitle: true,
   });
   const bad = normalizeSoundSettings({ soundId: '../x', soundAlt: 'zz', soundIndex: 'drop table', output: 'everywhere', mode: 'loop', icon: '<svg>', background: 'white', label: 'x'.repeat(200) });
   assert.equal(bad.soundId, '');
@@ -36,11 +36,10 @@ test('checkboxes are read whatever shape they arrive in', () => {
   for (const value of [true, 'true', 'on', '1']) assert.equal(flag(value, false), true);
   for (const value of [false, 'false', 'off', '0']) assert.equal(flag(value, true), false);
   assert.equal(flag(undefined, true), true, 'a missing checkbox keeps its default');
-  assert.equal(normalizeSoundSettings({ feedback: 'false' }).feedback, false);
 });
 
 test('a navigator key keeps to its group, its position within limits', () => {
-  assert.deepEqual(normalizeSlotSettings({ group: ' Memes 2 ', position: '40' }), { group: 'Memes 2', position: 1, feedback: true, background: 'black', showTitle: true });
+  assert.deepEqual(normalizeSlotSettings({ group: ' Memes 2 ', position: '40' }), { group: 'Memes 2', position: 1, background: 'black', showTitle: true });
   assert.equal(normalizeSlotSettings({ position: 32 }).position, 32);
   assert.equal(groupId('<script>'), 'A');
   assert.equal(groupId(''), 'A');

@@ -109,7 +109,7 @@ test('a favorite shows how far its sound has played, and nothing for another key
   assert.equal(other.buildView().idle, true);
 });
 
-test('a favorite turns green while its sound plays, yellow when paused, and stays white without feedback', async () => {
+test('a favorite turns green while its sound plays, yellow when paused, and is green or yellow whatever else is set', async () => {
   const { make, ready, service } = await setup();
   make(SoundKey, {});
   await ready();
@@ -121,8 +121,6 @@ test('a favorite turns green while its sound plays, yellow when paused, and stay
   assert.equal(other.buildView().state, 'ready', 'only the key whose sound plays');
   await service.control('pause');
   assert.equal(key.buildView().state, 'paused');
-  key.updateSettings({ ...key.settings, feedback: false });
-  assert.equal(key.buildView().state, 'ready');
 });
 
 test('a favorite whose sound is gone shows grey with its old name, and alerts on press', async () => {
