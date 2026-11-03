@@ -26,6 +26,22 @@ test('every symbol draws in every state, with and without a name, at key size', 
   }
 });
 
+test('a bar shows only while a sound plays or is paused, and the idle mark only on a ready key', async () => {
+  const draw = (view) => renderSvg({ background: 'black', symbol: 'note', title: 'Horn', ...view });
+  const plain = await draw({ state: 'playing' });
+  const half = await draw({ state: 'playing', progress: 25 });
+  const full = await draw({ state: 'playing', progress: 50 });
+  assert.ok(half.length > plain.length);
+  assert.match(half, /width="42"/, 'half of the bar');
+  assert.match(full, /width="84" height="6" rx="3" fill="#2BD96B"/, 'all of it, in the state color');
+  assert.ok(!/NaN|undefined/.test(half + full));
+  assert.equal((await draw({ state: 'ready', progress: 25 })).length, (await draw({ state: 'ready' })).length, 'no bar on a ready key');
+  assert.equal((await draw({ state: 'paused', progress: 10 })).includes('#FFC83D'), true);
+  assert.ok((await draw({ state: 'ready', idle: true })).length > (await draw({ state: 'ready' })).length);
+  assert.equal((await draw({ state: 'playing', idle: true })).length, plain.length, 'playing has its own mark');
+  assert.ok(!/NaN/.test(await draw({ state: 'playing', progress: 9999 })));
+});
+
 test('every icon offered in the panel exists as a symbol', () => {
   for (const icon of ICONS) if (icon !== 'none') assert.ok(SYMBOLS[icon], icon);
 });

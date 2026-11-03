@@ -13,6 +13,9 @@ import { renderFace } from '../render/renderer.js';
  * }} Host
  */
 
+/** What a press on a sound can answer without it counting as a failure. */
+export const PRESSED = new Set(['played', 'stopped', 'paused', 'resumed']);
+
 export class BaseKey {
   active = true;
   /** @type {string|null} */

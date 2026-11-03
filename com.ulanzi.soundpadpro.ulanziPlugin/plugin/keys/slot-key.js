@@ -1,7 +1,7 @@
 // One position of a navigator group: shows a category or a sound from the group's current page.
 import { ALL_SOUNDS } from '../soundpad/library.js';
 import { normalizeSlotSettings } from '../settings.js';
-import { BaseKey, connectionView } from './base-key.js';
+import { BaseKey, PRESSED, connectionView } from './base-key.js';
 
 export class SlotKey extends BaseKey {
   settings = normalizeSlotSettings();
@@ -18,7 +18,7 @@ export class SlotKey extends BaseKey {
   constructor(context, deps) {
     super(context, deps);
     this.#registry = deps.registry;
-    this.#sub = this.service.subscribe({ active: this.active, onChange: () => this.refresh() });
+    this.#sub = this.service.subscribe({ active: this.active, onChange: () => this.refresh(), wantsProgress: true });
   }
 
   updateSettings(param) {
@@ -63,7 +63,9 @@ export class SlotKey extends BaseKey {
         badge: String(item.category.sounds.length),
       };
     }
-    return { ...base, state: this.#playState(item.sound), symbol: 'note', title: title(item.sound.title) };
+    const state = this.#playState(item.sound);
+    const feedback = !settings.feedback ? {} : state === 'ready' ? { idle: true } : { progress: this.service.progressFor(item.sound.id) };
+    return { ...base, state, symbol: 'note', title: title(item.sound.title), ...feedback };
   }
 
   #playState(sound) {
@@ -93,7 +95,7 @@ export class SlotKey extends BaseKey {
     if (item.kind === 'sound') {
       const { output, mode } = this.navigator.options;
       const { result } = await this.service.playEntry(item.sound, { output, mode });
-      if (result !== 'played' && result !== 'stopped') this.alert();
+      if (!PRESSED.has(result)) this.alert();
       this.refresh();
       return;
     }

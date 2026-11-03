@@ -5,7 +5,7 @@ import { ID_PATTERN } from './soundpad/identity.js';
 import { MAX_SOUND_INDEX } from './soundpad/protocol.js';
 
 export const OUTPUTS = ['both', 'speakers', 'mic', 'default'];
-export const PLAY_MODES = ['play', 'toggle', 'restart'];
+export const PLAY_MODES = ['pause', 'play', 'toggle', 'restart'];
 export const ICONS = ['play', 'note', 'horn', 'laugh', 'bell', 'mic', 'star', 'heart', 'bolt', 'fire', 'none'];
 export const BACKGROUNDS = ['black', 'graphite'];
 export const ACCENTS = ['white', 'cyan', 'violet', 'orange', 'pink'];

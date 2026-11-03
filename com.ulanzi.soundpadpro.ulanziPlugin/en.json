@@ -63,6 +63,7 @@
     "output.speakers": "Speakers only",
     "output.mic": "Microphone only",
     "output.default": "As set in Soundpad",
+    "mode.pause": "Play, then pause or resume when pressed again",
     "mode.play": "Always play",
     "mode.toggle": "Play, or stop if playing",
     "mode.restart": "Stop the current sound, then play",

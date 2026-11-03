@@ -71,11 +71,42 @@ test('a favorite shows a prompt until a sound is chosen, then the sound', async 
   assert.equal(key.buildView().title, 'T:Choose a sound');
   const sound = service.library.sounds[1];
   key.updateSettings({ soundId: sound.id, soundAlt: sound.alt, soundIndex: sound.index, soundTitle: sound.title, icon: 'horn' });
-  assert.deepEqual(key.buildView(), { background: 'black', accent: 'white', state: 'ready', symbol: 'horn', title: 'Sound 2' });
+  assert.deepEqual(key.buildView(), { background: 'black', accent: 'white', state: 'ready', symbol: 'horn', title: 'Sound 2', idle: true });
   key.updateSettings({ ...key.settings, label: 'Mine', showTitle: true });
   assert.equal(key.buildView().title, 'Mine');
   key.updateSettings({ ...key.settings, showTitle: false });
   assert.equal(key.buildView().title, '');
+});
+
+test('a favorite pressed again while it plays pauses, and resumes on the next press without an alert', async () => {
+  const { make, ready, service, host } = await setup();
+  make(SoundKey, {});
+  await ready();
+  const sound = service.library.sounds[0];
+  const key = make(SoundKey, { soundId: sound.id, soundAlt: sound.alt, soundIndex: 1 });
+  await key.run();
+  assert.equal(key.buildView().state, 'playing');
+  assert.equal(key.buildView().idle, undefined, 'the corner shows the playing mark instead');
+  await key.run();
+  assert.equal(key.buildView().state, 'paused');
+  await key.run();
+  assert.equal(key.buildView().state, 'playing');
+  assert.equal(host.alerts, 0);
+});
+
+test('a favorite shows how far its sound has played, and nothing for another key', async () => {
+  const { make, ready, service, sim } = await setup();
+  make(SoundKey, {});
+  await ready();
+  const sound = service.library.sounds[0];
+  const key = make(SoundKey, { soundId: sound.id, soundAlt: sound.alt, soundIndex: 1 });
+  const other = make(SoundKey, { soundId: service.library.sounds[1].id, soundIndex: 2 });
+  sim.positionMs = 5_000;
+  await key.run();
+  for (let i = 0; i < 40 && key.buildView().progress == null; i += 1) await sleep(25);
+  assert.equal(key.buildView().progress, 25);
+  assert.equal(other.buildView().progress, undefined);
+  assert.equal(other.buildView().idle, true);
 });
 
 test('a favorite turns green while its sound plays, yellow when paused, and stays white without feedback', async () => {
