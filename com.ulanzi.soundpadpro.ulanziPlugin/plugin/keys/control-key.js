@@ -1,5 +1,6 @@
 // Playback controls that do not name a sound: stop, pause, next, previous, random, replay, volume.
 import { normalizeControlSettings } from '../settings.js';
+import { microphone } from '../system/microphone.js';
 import { VOLUME_BIG_STEP } from '../soundpad/service.js';
 import { BaseKey, connectionView } from './base-key.js';
 
@@ -22,10 +23,14 @@ export class ControlKey extends BaseKey {
   /** @type {any} */
   #holdStop = null;
   #holdBusy = false;
+  #microphone;
+  /** Whether Windows has the microphone muted, as of the last time it was asked. Null before that. */
+  #micMuted = null;
 
   constructor(context, deps) {
     super(context, deps);
     this.#timers = deps.timers ?? globalThis;
+    this.#microphone = deps.microphone ?? microphone;
   }
 
   updateSettings(param) {
@@ -33,6 +38,14 @@ export class ControlKey extends BaseKey {
     const needsChanged = !this.#sub || VOLUME_ACTIONS.has(next.action) !== VOLUME_ACTIONS.has(this.settings.action)
       || STATUS_ACTIONS.has(next.action) !== STATUS_ACTIONS.has(this.settings.action);
     this.settings = next;
+    if (next.action === 'micMute') {
+      // The microphone is Windows', not Soundpad's, so this key needs no connection to Soundpad.
+      this.#sub?.close();
+      this.#sub = null;
+      this.#readMicrophone();
+      this.refresh();
+      return;
+    }
     if (needsChanged) {
       // Subscribing again with what this action needs, before closing the old one, so the
       // connection never drops in between.
@@ -51,6 +64,19 @@ export class ControlKey extends BaseKey {
   onActiveChanged(active) {
     this.#sub?.setActive(active);
     if (!active) this.#stopHold();
+    // It may have been changed elsewhere while the deck was not showing.
+    else if (this.settings.action === 'micMute') this.#readMicrophone();
+  }
+
+  async #readMicrophone() {
+    try {
+      const { muted } = await this.#microphone('read');
+      if (this.destroyed || muted === this.#micMuted) return;
+      this.#micMuted = muted;
+      this.refresh();
+    } catch {
+      // The key shows its normal face until a press says more.
+    }
   }
 
   pressStart() {
@@ -100,6 +126,10 @@ export class ControlKey extends BaseKey {
   buildView() {
     const { action, background, accent, showTitle } = this.settings;
     const t = (key) => this.host.t(key);
+    if (action === 'micMute') {
+      const muted = this.#micMuted === true;
+      return { background, accent, state: muted ? 'paused' : 'ready', symbol: muted ? 'micOff' : 'mic', title: showTitle ? t(muted ? 'Microphone muted' : 'Microphone on') : '' };
+    }
     const offline = connectionView(this.service, t, background);
     if (offline) return { ...offline, symbol: offline.state === 'loading' ? 'dots' : offline.symbol, title: showTitle ? offline.title : '' };
     const view = { background, accent, state: 'ready', symbol: action };
@@ -123,6 +153,15 @@ export class ControlKey extends BaseKey {
   }
 
   async run() {
+    if (this.settings.action === 'micMute') {
+      try {
+        this.#micMuted = (await this.#microphone('toggle')).muted;
+      } catch {
+        this.alert();
+      }
+      this.refresh();
+      return;
+    }
     const { result } = await this.service.control(this.settings.action, { output: this.settings.output });
     if (result !== 'done') this.alert();
     this.refresh();

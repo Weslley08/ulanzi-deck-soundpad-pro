@@ -202,6 +202,36 @@ test('navigation buttons look disabled when they cannot move, and show where the
   assert.equal(next.buildView().badge, '1/8');
 });
 
+test('the microphone key mutes and unmutes the Windows microphone, without needing Soundpad', async () => {
+  const { service, host, sim } = await setup();
+  const calls = [];
+  let muted = false;
+  const microphone = async (mode) => {
+    calls.push(mode);
+    if (mode === 'toggle') muted = !muted;
+    return { muted };
+  };
+  const key = new ControlKey('mic', { host, service, render: async (view) => view, microphone });
+  cleanups.push(async () => key.destroy());
+  key.updateSettings({ action: 'micMute' });
+  await sleep(20);
+  assert.deepEqual(calls, ['read']);
+  assert.equal(key.buildView().symbol, 'mic');
+  assert.equal(key.buildView().state, 'ready');
+  await key.run();
+  assert.equal(key.buildView().symbol, 'micOff');
+  assert.equal(key.buildView().state, 'paused');
+  await key.run();
+  assert.equal(key.buildView().symbol, 'mic');
+  assert.equal(host.alerts, 0);
+  assert.equal(sim.connections, 0, 'the key never opened the pipe to Soundpad');
+  const broken = new ControlKey('mic2', { host, service, render: async (view) => view, microphone: async () => { throw new Error('microphone'); } });
+  cleanups.push(async () => broken.destroy());
+  broken.updateSettings({ action: 'micMute' });
+  await broken.run();
+  assert.equal(host.alerts, 1, 'a failed press alerts');
+});
+
 test('holding a volume key moves it by ten at a steady pace, and letting go stops it', async () => {
   const { sim, service, host, ready } = await setup();
   const timers = new ManualTimers();
