@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Soundpad Controller</title>
+  <link rel="stylesheet" href="../../libs/css/uspi.css">
+  <link rel="stylesheet" href="./inspector.css">
+</head>
+<body>
+  <div class="uspi-wrapper hidden">
+
+    <!-- Connection: on every action. -->
+    <div class="uspi-heading" data-localize>Connection</div>
+    <div class="uspi-item field-note">
+      <div class="uspi-item-label empty"></div>
+      <div class="field-note-body">
+        <p class="tip info" id="connection" role="status"></p>
+        <p class="hint" id="connectionHint"></p>
+        <div class="button-row">
+          <button type="button" id="reconnect" data-localize>Reconnect</button>
+          <button type="button" id="refresh" data-localize>Refresh library</button>
+        </div>
+        <details id="diagnostics">
+          <summary data-localize>Diagnostics</summary>
+          <dl id="diagnosticList"></dl>
+        </details>
+      </div>
+    </div>
+
+    <form id="property-inspector" autocomplete="off">
+
+      <!-- Favorite sound -->
+      <section data-action="sound" class="hidden">
+        <div class="uspi-heading" data-localize>Library</div>
+        <div class="uspi-item">
+          <label class="uspi-item-label" for="category" data-localize>Category</label>
+          <select class="uspi-item-value select" id="category"></select>
+        </div>
+        <div class="uspi-item">
+          <label class="uspi-item-label" for="search" data-localize>Search</label>
+          <input class="uspi-item-value" id="search" type="search" maxlength="80" spellcheck="false" placeholder="Type part of a name" data-localize="Type part of a name">
+        </div>
+        <div class="uspi-item field-note">
+          <div class="uspi-item-label empty"></div>
+          <div class="field-note-body">
+            <p class="tip info" id="resultInfo"></p>
+            <div id="results" class="results" role="listbox"></div>
+          </div>
+        </div>
+        <div class="uspi-item">
+          <div class="uspi-item-label" data-localize>Sound</div>
+          <div class="uspi-item-value chosen">
+            <span id="chosen"></span>
+          </div>
+        </div>
+        <div class="uspi-item field-note">
+          <div class="uspi-item-label empty"></div>
+          <div class="field-note-body"><p class="tip info" id="soundState"></p></div>
+        </div>
+
+        <div class="uspi-heading" data-localize>Playback</div>
+        <div class="uspi-item">
+          <label class="uspi-item-label" for="output" data-localize>Plays on</label>
+          <select class="uspi-item-value select" id="output" data-field="output">
+            <option value="both" data-localize="output.both">Speakers and microphone</option>
+            <option value="speakers" data-localize="output.speakers">Speakers only</option>
+            <option value="mic" data-localize="output.mic">Microphone only</option>
+            <option value="default" data-localize="output.default">As set in Soundpad</option>
+          </select>
+        </div>
+        <div class="uspi-item">
+          <label class="uspi-item-label" for="mode" data-localize>On press</label>
+          <select class="uspi-item-value select" id="mode" data-field="mode">
+            <option value="pause" data-localize="mode.pause">Play, then pause or resume when pressed again</option>
+          <option value="play" data-localize="mode.play">Always play</option>
+            <option value="toggle" data-localize="mode.toggle">Play, or stop if playing</option>
+            <option value="restart" data-localize="mode.restart">Stop the current sound, then play</option>
+          </select>
+        </div>
+
+        <div class="uspi-heading" data-localize>Appearance</div>
+        <div class="uspi-item">
+          <label class="uspi-item-label" for="label" data-localize>Title</label>
+          <input class="uspi-item-value" id="label" type="text" maxlength="40" spellcheck="false" data-field="label" placeholder="Name of the sound" data-localize="Name of the sound">
+        </div>
+        <div class="uspi-item">
+          <div class="uspi-item-label" data-localize>Icon</div>
+          <div class="uspi-item-value icon-grid" id="iconGrid"></div>
+        </div>
+        <div class="uspi-item">
+          <label class="uspi-item-label" for="accent" data-localize>Icon color</label>
+          <select class="uspi-item-value select" id="accent" data-field="accent">
+            <option value="white" data-localize="color.white">White</option>
+            <option value="cyan" data-localize="color.cyan">Cyan</option>
+            <option value="violet" data-localize="color.violet">Violet</option>
+            <option value="orange" data-localize="color.orange">Orange</option>
+            <option value="pink" data-localize="color.pink">Pink</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Playback control -->
+      <section data-action="control" class="hidden">
+        <div class="uspi-heading" data-localize>Playback</div>
+        <div class="uspi-item">
+          <label class="uspi-item-label" for="controlAction" data-localize>Action</label>
+          <select class="uspi-item-value select" id="controlAction" data-field="action">
+            <option value="stop" data-localize="control.stop">Stop</option>
+            <option value="pause" data-localize="control.pause">Pause and resume</option>
+            <option value="next" data-localize="control.next">Next sound</option>
+            <option value="previous" data-localize="control.previous">Previous sound</option>
+            <option value="random" data-localize="control.random">Random sound</option>
+            <option value="replay" data-localize="control.replay">Play the last sound again</option>
+            <option value="volumeUp" data-localize="control.volumeUp">Volume up</option>
+            <option value="volumeDown" data-localize="control.volumeDown">Volume down</option>
+            <option value="mute" data-localize="control.mute">Mute and unmute</option>
+          </select>
+        </div>
+        <div class="uspi-item" id="controlOutputRow">
+          <label class="uspi-item-label" for="controlOutput" data-localize>Plays on</label>
+          <select class="uspi-item-value select" id="controlOutput" data-field="output">
+            <option value="both" data-localize="output.both">Speakers and microphone</option>
+            <option value="speakers" data-localize="output.speakers">Speakers only</option>
+            <option value="mic" data-localize="output.mic">Microphone only</option>
+          </select>
+        </div>
+        <div class="uspi-item field-note">
+          <div class="uspi-item-label empty"></div>
+          <div class="field-note-body"><p class="hint" id="volumeNote" data-localize="volume.note">Volume changes Soundpad's speaker volume, as its own slider does.</p></div>
+        </div>
+        <div class="uspi-item">
+          <label class="uspi-item-label" for="controlAccent" data-localize>Icon color</label>
+          <select class="uspi-item-value select" id="controlAccent" data-field="accent">
+            <option value="white" data-localize="color.white">White</option>
+            <option value="cyan" data-localize="color.cyan">Cyan</option>
+            <option value="violet" data-localize="color.violet">Violet</option>
+            <option value="orange" data-localize="color.orange">Orange</option>
+            <option value="pink" data-localize="color.pink">Pink</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Shared by every action. -->
+      <section id="appearance">
+        <div class="uspi-item">
+          <label class="uspi-item-label" for="background" data-localize>Background</label>
+          <select class="uspi-item-value select" id="background" data-field="background">
+            <option value="black" data-localize="background.black">Black</option>
+            <option value="graphite" data-localize="background.graphite">Graphite</option>
+          </select>
+        </div>
+        <div class="uspi-item" id="showTitleRow">
+          <div class="uspi-item-label empty"></div>
+          <div class="uspi-item-value"><input type="checkbox" id="showTitle" data-field="showTitle"><label for="showTitle" data-localize>Show the name on the key</label></div>
+        </div>
+      </section>
+    </form>
+
+    <hr>
+    <p class="note" data-localize="note.local">Talks to Soundpad only on this computer. Nothing is sent over the internet.</p>
+    <p class="note" data-localize="note.trademark">Soundpad is a product of Leppsoft. This plugin is not affiliated with Leppsoft or Ulanzi.</p>
+    <p class="version" id="version"></p>
+  </div>
+
+  <script src="../../libs/js/constants.js"></script>
+  <script src="../../libs/js/eventEmitter.js"></script>
+  <script src="../../libs/js/timers.js"></script>
+  <script src="../../libs/js/utils.js"></script>
+  <script src="../../libs/js/ulanziApi.js"></script>
+  <script src="./inspector.js"></script>
+</body>
+</html>

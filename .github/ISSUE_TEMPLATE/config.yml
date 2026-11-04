@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/Weslley08/ulanzi-deck-soundpad-pro/security/advisories/new
+    about: Report vulnerabilities privately, not in a public issue.
+  - name: Soundpad itself (license, crashes, audio devices)
+    url: https://www.leppsoft.com/soundpad/en/help/
+    about: For problems in Soundpad that happen without this plugin, contact Leppsoft.

@@ -1,0 +1,39 @@
+name: Delivery
+
+# The jobs are in Weslley08/ulanzi-plugin-pipeline. This file says when they run and what differs for this plugin.
+on:
+  push:
+    branches:
+      - feature/**
+      - feat/**
+      - fix/**
+      - chore/**
+      - docs/**
+      - refactor/**
+      - test/**
+      - ci/**
+      - build/**
+      - perf/**
+      - develop
+      - main
+      - release/v*
+
+permissions:
+  contents: read
+
+concurrency:
+  group: delivery-${{ github.ref }}
+  # On a release branch, a newer merge makes validating the older one pointless.
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/heads/release/') }}
+
+jobs:
+  delivery:
+    uses: Weslley08/ulanzi-plugin-pipeline/.github/workflows/delivery.yml@feat/maintainer-approval
+    with:
+      # Soundpad runs on Windows only, so the very zip that goes in the draft starts there.
+      smoke-os: '["windows-latest"]'
+      # Publishing stays off until the maintainer sets this repository variable to true.
+      publishing: ${{ vars.PUBLISHING_ENABLED }}
+    secrets:
+      APP_CLIENT_ID: ${{ secrets.APP_CLIENT_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
