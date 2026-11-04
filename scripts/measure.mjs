@@ -18,6 +18,7 @@ const PLAYING_SECONDS = Math.min(IDLE_SECONDS, 20);
 const manifest = JSON.parse(readFileSync(join(pluginDir, 'manifest.json'), 'utf8'));
 const preload = (file) => pathToFileURL(join(root, 'test', 'support', file)).href;
 const { SoundpadSimulator, makeSounds } = await import(preload('soundpad-sim.mjs'));
+const { fileId, metaId } = await import(pathToFileURL(join(pluginDir, 'plugin', 'soundpad', 'identity.js')).href);
 
 const CATEGORIES = 20;
 const sim = new SoundpadSimulator({
@@ -85,9 +86,13 @@ await ready;
 await sleep(300);
 const atStart = await metrics();
 
-// A D200-like layout: favorites and controls.
+// A D200-like layout: favorites, each fixed on a sound as the panel saves it, and controls.
+const favorite = (i) => {
+  const sound = sim.sounds[i];
+  return { soundId: fileId(sound.url), soundAlt: metaId(sound), soundIndex: i + 1, soundTitle: sound.title };
+};
 const layout = [
-  ...Array.from({ length: Math.max(1, KEYS - 2) }, (_, i) => ({ action: 'sound', param: {}, key: `f${i}` })),
+  ...Array.from({ length: Math.max(1, KEYS - 2) }, (_, i) => ({ action: 'sound', param: favorite(i), key: `f${i}` })),
   { action: 'control', param: { action: 'stop' }, key: 'c1' },
   { action: 'control', param: { action: 'volumeUp' }, key: 'c2' },
 ].slice(0, Math.max(KEYS, 5));
@@ -105,26 +110,13 @@ await sleep(IDLE_SECONDS * 1000);
 const afterIdle = await metrics();
 const commandsWhileIdle = sim.log.length - commandsAtRender;
 
-// Paging: open a category and turn pages, the heaviest thing a user does with the keys.
-const pageTurns = 40;
-const beforePaging = await metrics();
-const imagesBeforePaging = images;
-send({ cmd: 'run', ...keyOf(layout.find((entry) => entry.key === 'p1')) });
-await sleep(100);
-for (let i = 0; i < pageTurns; i += 1) {
-  send({ cmd: 'run', ...keyOf(layout.find((entry) => entry.key === 'n1')) });
-  await sleep(60);
-}
-await settled(0);
-const afterPaging = await metrics();
-const imagesPerTurn = (images - imagesBeforePaging) / pageTurns;
-
+const favorites = layout.filter((entry) => entry.action === 'sound').length;
 // Presses that play: each one checks the sound is still where it was before playing it.
 const presses = 30;
 const beforePresses = await metrics();
 const pressStart = performance.now();
 for (let i = 0; i < presses; i += 1) {
-  send({ cmd: 'run', ...keyOf(layout.find((entry) => entry.key === `p${i % positions}`)) });
+  send({ cmd: 'run', ...keyOf(layout.find((entry) => entry.key === `f${i % favorites}`)) });
   await sleep(50);
 }
 const pressSpan = performance.now() - pressStart;
@@ -162,12 +154,10 @@ console.log(`Node ${process.version} on ${process.platform}, ${layout.length} ke
 console.log(`Memory at start, no keys    ${MB(atStart.rss)}`);
 console.log(`Memory with keys drawn      ${MB(afterRender.rss)} (heap ${MB(afterRender.heapUsed)}, WASM and buffers ${MB(afterRender.external)})`);
 console.log(`Memory after ${IDLE_SECONDS} s idle       ${MB(afterIdle.rss)}`);
-console.log(`Memory after paging         ${MB(afterPaging.rss)}`);
 console.log(`Memory after all keys left  ${MB(afterClear.rss)}`);
 console.log(`CPU idle                    ${cpuPercent(afterRender, afterIdle, IDLE_SECONDS * 1000)}% of one core, ${commandsWhileIdle} Soundpad requests in ${IDLE_SECONDS} s`);
 console.log(`CPU while a sound plays     ${cpuPercent(playingStart, playingEnd, PLAYING_SECONDS * 1000)}% of one core, ${pollsPerSecond.toFixed(1)} status requests a second`);
 console.log(`First paint of every key    ${firstPaint.toFixed(0)} ms, ${(afterRender.cpuMs - atStart.cpuMs).toFixed(0)} ms of CPU`);
-console.log(`One page turn               ${((afterPaging.cpuMs - beforePaging.cpuMs) / pageTurns).toFixed(1)} ms of CPU, ${imagesPerTurn.toFixed(1)} images sent`);
 console.log(`One press that plays        ${((afterPresses.cpuMs - beforePresses.cpuMs) / presses).toFixed(1)} ms of CPU, ${(pressSpan / presses).toFixed(0)} ms apart`);
 console.log(`Image sent per key          ${(imageSize / 1024).toFixed(1)} KB`);
 console.log(`After every key left        ${connectionsAfterClear} pipe connections, ${commandsWhileEmpty} requests in 3 s`);
