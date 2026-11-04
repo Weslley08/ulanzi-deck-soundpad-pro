@@ -3,7 +3,7 @@
 import { ID_PATTERN } from './soundpad/identity.js';
 import { ALL_SOUNDS, searchText } from './soundpad/library.js';
 import { MAX_SOUND_INDEX } from './soundpad/protocol.js';
-import { categoryKey, groupId, integer } from './settings.js';
+import { categoryKey, integer } from './settings.js';
 
 export const MAX_RESULTS = 200;
 const MAX_CATEGORIES = 500;
@@ -65,9 +65,9 @@ export function soundRefFrom(payload) {
 /**
  * @param {import('./keys/base-key.js').BaseKey} key
  * @param {any} payload anything the panel sent; every field is checked below
- * @param {{ service: import('./soundpad/service.js').SoundpadService, store: import('./global-store.js').GlobalStore, version: string }} deps
+ * @param {{ service: import('./soundpad/service.js').SoundpadService, version: string }} deps
  */
-export async function handleInspectorMessage(key, payload, { service, store, version }) {
+export async function handleInspectorMessage(key, payload, { service, version }) {
   const reply = (message) => key.host.sendToPropertyInspector(message, key.context);
   switch (payload?.type) {
     case 'hello':
@@ -101,9 +101,6 @@ export async function handleInspectorMessage(key, payload, { service, store, ver
     }
     case 'stopPreview':
       await service.control('stop');
-      return;
-    case 'groupOptions':
-      store.setGroupOptions(groupId(payload.group), payload.options ?? {});
       return;
     default:
   }

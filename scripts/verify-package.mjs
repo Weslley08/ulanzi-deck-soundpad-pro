@@ -116,7 +116,7 @@ async function smokeTest() {
   await once(server, 'listening');
   const sim = new SoundpadSimulator({ categories: [{ name: 'Smoke', sounds: [1, 2] }] });
   const simPath = await sim.listen();
-  const slot = manifest.Actions.find((action) => action.UUID.endsWith('.slot'));
+  const control = manifest.Actions.find((action) => action.UUID.endsWith('.control'));
   let plugin;
   try {
     for (const [name, data] of zip) {
@@ -130,10 +130,7 @@ async function smokeTest() {
         socket.on('message', (raw) => {
           const message = JSON.parse(raw);
           if (message.cmd === 'connected') {
-            socket.send(JSON.stringify({ cmd: 'add', uuid: slot.UUID, key: '0_0', actionid: 'smoke', param: { group: 'A', position: 2 } }));
-          }
-          if (message.cmd === 'getGlobalSettings') {
-            socket.send(JSON.stringify({ cmd: 'didReceiveGlobalSettings', uuid: manifest.UUID, key: '', actionid: '', settings: {} }));
+            socket.send(JSON.stringify({ cmd: 'add', uuid: control.UUID, key: '0_0', actionid: 'smoke', param: { action: 'stop' } }));
           }
           const image = message.cmd === 'state' ? message.param?.statelist?.[0]?.data : null;
           // The first face waits for Soundpad; this one comes after the library was read.

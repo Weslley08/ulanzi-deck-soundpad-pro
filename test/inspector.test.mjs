@@ -224,8 +224,7 @@ test('the page has no background of its own, as the store requires', options, as
 
 test('a favorite shows its own sections only, in the host language', options, async () => {
   await until(`document.querySelector('section[data-action=sound]').offsetParent !== null`);
-  assert.equal(await run(`document.querySelector('section[data-action=slot]').offsetParent`), null);
-  assert.equal(await run(`document.querySelector('#groupOptions').offsetParent`), null);
+  assert.equal(await run(`document.querySelector('section[data-action=control]').offsetParent`), null);
   await until(`document.querySelector('label[for=search]').textContent === 'Pesquisar'`);
   assert.equal(await run(`document.querySelector('#search').placeholder`), 'Digite parte do nome');
   assert.equal(await run(`document.querySelector('#iconGrid').children.length`), 11);
@@ -337,35 +336,6 @@ test('the version from the plugin shows up', options, async () => {
   await until(`document.querySelector('#version').textContent === 'Soundpad Controller v1.2.3'`);
 });
 
-test('a library position shows its group and the shared group options', options, async () => {
-  ACTION_UUID = `${PLUGIN}.slot`;
-  messages = [];
-  await cdp('Page.navigate', { url: pageUrl('slot') });
-  await waitForMessage((m) => m.payload?.type === 'hello');
-  await until(`document.querySelector('#groupOptions')?.offsetParent != null`);
-  assert.equal(await run(`document.querySelector('section[data-action=sound]').offsetParent`), null);
-  fromHost({ cmd: 'sendToPropertyInspector', payload: LIBRARY });
-  fromHost({ cmd: 'paramfromapp', param: { group: 'Memes', position: 3, background: 'black', showTitle: true } });
-  await until(`document.querySelector('#slotGroup').value === 'Memes'`);
-  assert.equal(await run(`document.querySelector('#position').value`), '3');
-  fromHost({ cmd: 'sendToPropertyInspector', payload: { ...CONNECTED, kind: 'slot', group: 'Memes', page: 2, pages: 5, mode: 'sounds', categoryName: 'Memes', positionsOnDeck: 4, pageSize: 4, options: { positions: 0, startCategory: 'c0123456789abcdef', startPage: 1, persist: true, output: 'speakers', mode: 'play' } } });
-  await until(`document.querySelector('#groupState').textContent.includes('Página 2 de 5')`);
-  assert.equal(await run(`document.querySelector('#groupOutput').value`), 'speakers');
-  assert.equal(await run(`document.querySelector('#groupStartCategory').value`), 'c0123456789abcdef');
-  assert.equal(await run(`document.querySelector('#groupPersist').checked`), true);
-  await screenshot('panel-slot');
-});
-
-test('changing a group option sends it to the plugin for the whole group, not to the key', options, async () => {
-  messages = [];
-  await type('#groupPositions', '6');
-  const sent = await waitForMessage((m) => m.payload?.type === 'groupOptions');
-  assert.equal(sent.payload.group, 'Memes');
-  assert.equal(sent.payload.options.positions, 6);
-  assert.equal(sent.payload.options.persist, true);
-  assert.equal(messages.find((m) => m.cmd === 'paramfromplugin'), undefined);
-});
-
 test('a control key hides what does not apply to its action', options, async () => {
   ACTION_UUID = `${PLUGIN}.control`;
   await cdp('Page.navigate', { url: pageUrl('control') });
@@ -377,24 +347,22 @@ test('a control key hides what does not apply to its action', options, async () 
   await until(`document.querySelector('#controlOutputRow').offsetParent !== null`);
   fromHost({ cmd: 'paramfromapp', param: { action: 'volumeUp' } });
   await until(`document.querySelector('#volumeNote').offsetParent !== null`);
-  assert.equal(await run(`document.querySelector('#groupOptions').offsetParent`), null);
 });
 
 test('status that arrives before the language file is written again in the right language', options, async () => {
-  ACTION_UUID = `${PLUGIN}.nav`;
+  ACTION_UUID = `${PLUGIN}.control`;
   messages = [];
   // The language file is held back until the status has been shown, as on a slow machine.
   await cdp('Fetch.enable', { patterns: [{ urlPattern: '*pt_BR.json' }] });
   const held = new Promise((resolve) => { pausedRequest = resolve; });
-  await cdp('Page.navigate', { url: pageUrl('nav') });
+  await cdp('Page.navigate', { url: pageUrl('control') });
   await waitForMessage((m) => m.payload?.type === 'hello');
-  fromHost({ cmd: 'sendToPropertyInspector', payload: { ...CONNECTED, kind: 'nav', group: 'A', page: 1, pages: 3, mode: 'categories', positionsOnDeck: 4, pageSize: 4, options: {} } });
-  await until(`document.querySelector('#groupState').textContent.length > 0`);
+  fromHost({ cmd: 'sendToPropertyInspector', payload: { ...CONNECTED, kind: 'control' } });
+  await until(`document.querySelector('#connection').textContent.length > 0`);
   const { requestId } = await held;
   await cdp('Fetch.continueRequest', { requestId });
   await cdp('Fetch.disable');
-  await until(`document.querySelector('#groupState').textContent.includes('Página 1 de 3')`);
-  assert.match(await run(`document.querySelector('#connection').textContent`), /Conectado/);
+  await until(`/Conectado/.test(document.querySelector('#connection').textContent)`);
 });
 
 test('nothing private reaches the browser console', options, async () => {

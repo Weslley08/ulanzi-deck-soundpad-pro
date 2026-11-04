@@ -4,8 +4,6 @@ for (const method of ['log', 'info', 'debug', 'warn', 'error']) console[method] 
 // Kept in step with plugin/settings.js by test/manifest.test.mjs.
 const DEFAULTS = {
   sound: { soundId: '', soundAlt: '', soundIndex: 0, soundTitle: '', label: '', icon: 'play', accent: 'white', output: 'both', mode: 'pause', background: 'black', showTitle: true },
-  slot: { group: 'A', position: 1, background: 'black', showTitle: true },
-  nav: { group: 'A', function: 'nextPage', background: 'black' },
   control: { action: 'stop', output: 'both', accent: 'white', background: 'black', showTitle: true },
 };
 const ICONS = ['play', 'note', 'horn', 'laugh', 'bell', 'mic', 'star', 'heart', 'bolt', 'fire', 'none'];
@@ -15,7 +13,6 @@ const VOLUME_ACTIONS = ['volumeUp', 'volumeDown', 'mute'];
 
 const $ = (selector) => document.querySelector(selector);
 const form = $('#property-inspector');
-const groupSection = $('#groupOptions');
 
 let action = 'sound';
 let settings = { ...DEFAULTS.sound };
@@ -80,7 +77,6 @@ function fillForm() {
 function syncVisibility() {
   for (const section of form.querySelectorAll('section[data-action]')) section.classList.toggle('hidden', section.dataset.action !== action);
   $('#showTitleRow').classList.toggle('hidden', !('showTitle' in DEFAULTS[action]));
-  groupSection.classList.toggle('hidden', action !== 'slot' && action !== 'nav');
   if (action === 'control') {
     const value = $('#controlAction').value;
     $('#controlOutputRow').classList.toggle('hidden', value !== 'random');
@@ -134,14 +130,13 @@ function categoryLabel(category) {
   return `${'  '.repeat(category.depth)}${category.name}`;
 }
 
-function fillCategories(select, keep, withNone) {
+function fillCategories(select, keep) {
   const options = library.categories.map((category) => {
     const option = document.createElement('option');
     option.value = category.key;
     option.textContent = `${categoryLabel(category)} (${category.count})`;
     return option;
   });
-  if (withNone) options.unshift(Object.assign(document.createElement('option'), { value: '', textContent: t('Category list') }));
   select.replaceChildren(...options);
   select.value = [...select.options].some((option) => option.value === keep) ? keep : select.options[0]?.value ?? '';
 }
@@ -152,8 +147,7 @@ function showLibrary(message) {
     $('#resultInfo').textContent = t('library.waiting');
     return;
   }
-  fillCategories($('#category'), $('#category').value || 'all', false);
-  fillCategories($('#groupStartCategory'), $('#groupStartCategory').value, true);
+  fillCategories($('#category'), $('#category').value || 'all');
   if (action === 'sound') requestSearch();
 }
 
@@ -221,28 +215,12 @@ function showSoundState(status) {
   line.className = `tip ${status.relinked ? 'warn' : SOUND_STATES[status.sound] ?? 'info'}`;
 }
 
-// --- navigator groups ---
-
-function showGroup(status) {
-  const where = status.mode === 'sounds' ? status.categoryName || t('All sounds') : t('Category list');
-  $('#groupState').textContent = t('group.state', { page: status.page ?? 1, pages: status.pages ?? 1, where, keys: status.positionsOnDeck ?? 0 });
-  if (groupSection.contains(document.activeElement) || !status.options) return;
-  for (const el of groupSection.querySelectorAll('[data-option]')) writeField(el, status.options[el.dataset.option]);
-}
-
-const saveGroupOptions = Utils.debounce(() => {
-  const options = {};
-  for (const el of groupSection.querySelectorAll('[data-option]')) options[el.dataset.option] = readField(el);
-  $UD.sendToPlugin({ type: 'groupOptions', group: settings.group, options });
-}, SAVE_DELAY_MS);
-
 // --- wiring ---
 
 /** Everything a status message shows. Run again once the language file arrives. */
 function showStatus(status) {
   showConnection(status);
   if (status.kind === 'sound') showSoundState(status);
-  if (status.kind === 'slot' || status.kind === 'nav') showGroup(status);
 }
 
 function whenLocalized(fn, tries = 40) {
@@ -277,9 +255,8 @@ $UD.onConnected(() => {
     showChosen();
     showStatus(lastStatus);
     if (library.ready) {
-      fillCategories($('#category'), $('#category').value || 'all', false);
-      fillCategories($('#groupStartCategory'), $('#groupStartCategory').value, true);
-    } else {
+      fillCategories($('#category'), $('#category').value || 'all');
+        } else {
       $('#resultInfo').textContent = t('library.waiting');
     }
   });
@@ -293,8 +270,6 @@ $UD.onConnected(() => {
     else if (event.target.id !== 'search') saveSettings();
   });
   $('#search').addEventListener('input', requestSearchSoon);
-  groupSection.addEventListener('input', saveGroupOptions);
-  groupSection.addEventListener('change', saveGroupOptions);
   $('#reconnect').addEventListener('click', () => $UD.sendToPlugin({ type: 'reconnect' }));
   $('#refresh').addEventListener('click', () => $UD.sendToPlugin({ type: 'refresh' }));
 });

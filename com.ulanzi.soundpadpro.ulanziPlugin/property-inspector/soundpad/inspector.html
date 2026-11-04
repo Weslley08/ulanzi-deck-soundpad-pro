@@ -100,39 +100,6 @@
         </div>
       </section>
 
-      <!-- Library position -->
-      <section data-action="slot" class="hidden">
-        <div class="uspi-heading" data-localize>Navigation</div>
-        <div class="uspi-item">
-          <label class="uspi-item-label" for="slotGroup" data-localize>Group</label>
-          <input class="uspi-item-value" id="slotGroup" type="text" maxlength="16" spellcheck="false" data-field="group">
-        </div>
-        <div class="uspi-item">
-          <label class="uspi-item-label" for="position" data-localize>Position</label>
-          <input class="uspi-item-value" id="position" type="number" min="1" max="32" step="1" data-field="position">
-        </div>
-      </section>
-
-      <!-- Library navigation -->
-      <section data-action="nav" class="hidden">
-        <div class="uspi-heading" data-localize>Navigation</div>
-        <div class="uspi-item">
-          <label class="uspi-item-label" for="navGroup" data-localize>Group</label>
-          <input class="uspi-item-value" id="navGroup" type="text" maxlength="16" spellcheck="false" data-field="group">
-        </div>
-        <div class="uspi-item">
-          <label class="uspi-item-label" for="function" data-localize>Button</label>
-          <select class="uspi-item-value select" id="function" data-field="function">
-            <option value="nextPage" data-localize="nav.nextPage">Next page</option>
-            <option value="previousPage" data-localize="nav.previousPage">Previous page</option>
-            <option value="nextCategory" data-localize="nav.nextCategory">Next category</option>
-            <option value="previousCategory" data-localize="nav.previousCategory">Previous category</option>
-            <option value="back" data-localize="nav.back">Back to categories</option>
-            <option value="refresh" data-localize="nav.refresh">Refresh library</option>
-          </select>
-        </div>
-      </section>
-
       <!-- Playback control -->
       <section data-action="control" class="hidden">
         <div class="uspi-heading" data-localize>Playback</div>
@@ -189,56 +156,6 @@
         </div>
       </section>
     </form>
-
-    <!-- Options of a navigator group: shared by every key of the group, saved by the plugin. -->
-    <section id="groupOptions" class="hidden">
-      <div class="uspi-heading" data-localize>Group options</div>
-      <div class="uspi-item field-note">
-        <div class="uspi-item-label empty"></div>
-        <div class="field-note-body">
-          <p class="tip info" id="groupState"></p>
-          <p class="hint" data-localize="group.note">Every key with the same group name works together. Give a second set of keys another name to browse separately.</p>
-        </div>
-      </div>
-      <div class="uspi-item">
-        <label class="uspi-item-label" for="groupPositions" data-localize>Positions</label>
-        <input class="uspi-item-value" id="groupPositions" type="number" min="0" max="32" step="1" data-option="positions">
-      </div>
-      <div class="uspi-item field-note">
-        <div class="uspi-item-label empty"></div>
-        <div class="field-note-body"><p class="hint" data-localize="group.positions">0 counts the position keys on the deck.</p></div>
-      </div>
-      <div class="uspi-item">
-        <label class="uspi-item-label" for="groupStartCategory" data-localize>Start in</label>
-        <select class="uspi-item-value select" id="groupStartCategory" data-option="startCategory"></select>
-      </div>
-      <div class="uspi-item">
-        <label class="uspi-item-label" for="groupStartPage" data-localize>Start page</label>
-        <input class="uspi-item-value" id="groupStartPage" type="number" min="1" max="999" step="1" data-option="startPage">
-      </div>
-      <div class="uspi-item">
-        <div class="uspi-item-label empty"></div>
-        <div class="uspi-item-value"><input type="checkbox" id="groupPersist" data-option="persist"><label for="groupPersist" data-localize>Remember where I left off</label></div>
-      </div>
-      <div class="uspi-item">
-        <label class="uspi-item-label" for="groupOutput" data-localize>Plays on</label>
-        <select class="uspi-item-value select" id="groupOutput" data-option="output">
-          <option value="both" data-localize="output.both">Speakers and microphone</option>
-          <option value="speakers" data-localize="output.speakers">Speakers only</option>
-          <option value="mic" data-localize="output.mic">Microphone only</option>
-          <option value="default" data-localize="output.default">As set in Soundpad</option>
-        </select>
-      </div>
-      <div class="uspi-item">
-        <label class="uspi-item-label" for="groupMode" data-localize>On press</label>
-        <select class="uspi-item-value select" id="groupMode" data-option="mode">
-          <option value="pause" data-localize="mode.pause">Play, then pause or resume when pressed again</option>
-          <option value="play" data-localize="mode.play">Always play</option>
-          <option value="toggle" data-localize="mode.toggle">Play, or stop if playing</option>
-          <option value="restart" data-localize="mode.restart">Stop the current sound, then play</option>
-        </select>
-      </div>
-    </section>
 
     <hr>
     <p class="note" data-localize="note.local">Talks to Soundpad only on this computer. Nothing is sent over the internet.</p>

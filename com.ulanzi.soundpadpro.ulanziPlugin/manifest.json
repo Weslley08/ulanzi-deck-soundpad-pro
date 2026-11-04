@@ -1,8 +1,8 @@
 {
   "Author": "Weslley08",
   "Name": "Soundpad Controller",
-  "Description": "Play your Soundpad sounds from the keys: fixed favorites, a library you browse by category and page, and playback controls. Windows only; needs Soundpad running. Not affiliated with Leppsoft.",
-  "Detail": "Puts Soundpad on your Ulanzi deck. Favorites: any key plays one sound, on speakers, microphone or both, and keeps playing the right one when you add, remove or reorder sounds. Library: a group of keys shows a page of your categories or sounds, with keys for next and previous page, category and back. Controls: stop, pause, next, previous, random, replay and volume. Keys turn green while playing, yellow when paused, red when Soundpad is closed and grey when a sound is gone. It talks to Soundpad only on your computer, through Soundpad's own remote control, and sends nothing over the internet. Requires Soundpad on Windows. Soundpad is a product of Leppsoft; this plugin is not affiliated with Leppsoft or Ulanzi.",
+  "Description": "Play your Soundpad sounds from the keys: favorites and playback controls. Windows only; needs Soundpad running. Not affiliated with Leppsoft.",
+  "Detail": "Puts Soundpad on your Ulanzi deck. Favorites: any key plays one sound, on speakers, microphone or both, and keeps playing the right one when you add, remove or reorder sounds. Controls: stop, pause, next, previous, random, replay and volume. Keys turn green while playing, yellow when paused, red when Soundpad is closed and grey when a sound is gone. It talks to Soundpad only on your computer, through Soundpad's own remote control, and sends nothing over the internet. Requires Soundpad on Windows. Soundpad is a product of Leppsoft; this plugin is not affiliated with Leppsoft or Ulanzi.",
   "Icon": "resources/plugin-icon.png",
   "Version": "0.1.0",
   "Category": "Soundpad Controller",
@@ -25,46 +25,6 @@
         {
           "Name": "Favorite sound",
           "Image": "resources/key-sound.png"
-        }
-      ],
-      "DisableAutomaticStates": true,
-      "SupportedInMultiActions": false,
-      "Controllers": [
-        "Keypad"
-      ],
-      "Devices": []
-    },
-    {
-      "Name": "Library position",
-      "Icon": "resources/action-slot.svg",
-      "UUID": "com.ulanzi.soundpadpro.ulanziPlugin.slot",
-      "PropertyInspectorPath": "property-inspector/soundpad/inspector.html",
-      "Tooltip": "Shows a category or sound from the library page.",
-      "state": 0,
-      "States": [
-        {
-          "Name": "Library position",
-          "Image": "resources/key-slot.png"
-        }
-      ],
-      "DisableAutomaticStates": true,
-      "SupportedInMultiActions": false,
-      "Controllers": [
-        "Keypad"
-      ],
-      "Devices": []
-    },
-    {
-      "Name": "Library navigation",
-      "Icon": "resources/action-nav.svg",
-      "UUID": "com.ulanzi.soundpadpro.ulanziPlugin.nav",
-      "PropertyInspectorPath": "property-inspector/soundpad/inspector.html",
-      "Tooltip": "Moves the library: pages, categories and back.",
-      "state": 0,
-      "States": [
-        {
-          "Name": "Library navigation",
-          "Image": "resources/key-nav.png"
         }
       ],
       "DisableAutomaticStates": true,
