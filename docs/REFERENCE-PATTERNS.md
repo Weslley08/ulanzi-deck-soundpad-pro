@@ -26,7 +26,7 @@ The maintainer asked for this plugin to keep the engineering of [ulanzi-deck-cli
 | Secret scan of the repository and the zip | `scripts/scan-secrets.mjs`, `scripts/lib/secrets.mjs` | Same, patterns for this project |
 | `npm run measure`: CPU and memory against a fake host, put in the release notes | `scripts/measure.mjs`, `test/support/metrics.mjs` | Same approach, Soundpad workload |
 | Version in the manifest as the source, bumped everywhere at once | `scripts/lib/version.mjs`, `scripts/bump-version.mjs` | Copied |
-| Branch flow `work → develop → release/vX.Y.Z → main` in two workflows | `.github/workflows/gate.yml`, `delivery.yml`, calling `Weslley08/ulanzi-plugin-pipeline` | Shared with Clima Pro; `.github/pipeline.json` holds what differs, and publishing waits for `PUBLISHING_ENABLED` |
+| Branch flow `work → develop → release/vX.Y.Z → main` in two workflows | `.github/workflows/gate.yml`, `delivery.yml`, calling `Weslley08/ulanzi-plugin-pipeline` | Shared with Clima Pro; `.github/pipeline.json` holds what differs, and merging into `main` publishes |
 | Actions pinned by SHA; `pull_request`, never `pull_request_target`; jobs with the token run no npm | workflows | Same |
 | Weekly scan, CodeQL, dependency review, `npm audit`, Dependabot to `develop` | `gate.yml`, `dependabot.yml` | Same, plus a license check |
 | Issue templates asking device, OS, versions | `.github/ISSUE_TEMPLATE/` | Same, plus the Soundpad version |

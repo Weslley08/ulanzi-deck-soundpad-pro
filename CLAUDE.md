@@ -9,7 +9,7 @@ Soundpad Controller, a plugin for Ulanzi Studio that plays Soundpad sounds from 
 3. **Open source:** public repository, test pipeline, push validation, issue templates, simple fork flow.
 4. **No known vulnerabilities ship:** blocking checks on PRs and releases, plus a weekly scan. Scanners only find known problems, so never present a green check as proof of safety.
 
-Confirm with the maintainer before making the repository public, creating a release, publishing, or submitting to a store. The UUID `com.ulanzi.soundpadpro.ulanziPlugin` was chosen by the maintainer on 2026-11-01 and is fixed after publishing. Publishing stays off until the maintainer sets the repository variable `PUBLISHING_ENABLED` to `true`; never set it yourself.
+Confirm with the maintainer before making the repository public, creating a release, publishing, or submitting to a store. The UUID `com.ulanzi.soundpadpro.ulanziPlugin` was chosen by the maintainer on 2026-11-01 and is fixed after publishing. Publishing is always on (the maintainer decided this on 2026-11-04): merging a release into `main` publishes it and cannot be taken back.
 
 ## Commands
 
