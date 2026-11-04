@@ -5,13 +5,12 @@ The maintainer asked for this plugin to keep the engineering of [ulanzi-deck-cli
 | Pattern in Clima Pro | Where it is | Here |
 |---|---|---|
 | Node 20.12.2 everywhere, the runtime Studio bundles | `.nvmrc`, `engines` | Same |
-| Native ESM, no build step; types checked with `tsc --allowJs --checkJs --noEmit` on the riskiest modules | `tsconfig.json` | Same, on the Soundpad layer, navigation and settings, with null checks on |
+| Native ESM, no build step; types checked with `tsc --allowJs --checkJs --noEmit` on the riskiest modules | `tsconfig.json` | Same, on the Soundpad layer and settings, with null checks on |
 | SDK copied verbatim and pinned by file hash and upstream commit; extended only in `host.js` | `sdk-lock.json`, `scripts/check-sdk.mjs`, `plugin/host.js` | Same files, same commits (`9e478b2`, `0aeb6a2`) |
 | `host.js` overrides `send` so the SDK's console logging never sees messages, and keeps port and language on reconnect | `plugin/host.js` | Copied |
 | `report()` to stderr is the only output; never settings or URLs | `plugin/app.js` | Same, prefixed `[Soundpad Pro]`; never sound names or paths |
 | One router, one object per key, created on `add` or on a `run` that came first | `plugin/app.js` | Same, with a type per action |
 | Only `run` for presses (D200H sends `keydown` and `run`) | `plugin/app.js` | Same |
-| `getGlobalSettings` sent with a key's context, with a timeout | `plugin/app.js` | Same, for group options |
 | Shared hub: keys subscribe, polling only while a subscriber is on screen | `plugin/weather-hub.js` | `plugin/soundpad/service.js` |
 | Dedupe faces: render only on change, never resend the same image, full data URI | `plugin/weather-key.js`, `render/renderer.js` | `plugin/keys/base-key.js`, `render/renderer.js` |
 | Text as pre-built outlines, so remote text cannot inject SVG markup | `render/text.js`, `scripts/build-glyphs.mjs` | Copied; Outfit only |

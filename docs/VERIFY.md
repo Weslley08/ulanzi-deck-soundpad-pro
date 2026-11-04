@@ -30,16 +30,6 @@ Setup: download the zip from the draft release, or run `npm run package`, and in
 
 ## Library on the keys
 
-- [ ] Ten **Library position** keys and three **Library navigation** keys in group `A` show the categories with their counts
-- [ ] Opening a category shows its sounds; page buttons show `1/N` and move; the last page wraps to the first
-- [ ] Next and previous category show the name they lead to and move through all of them
-- [ ] Back returns to the category list on the right page
-- [ ] A sound on a page plays on the group's **Plays on**; the key turns green
-- [ ] Changing **Positions** in the group options changes the page size on every key of the group
-- [ ] With **Remember where I left off** on, restarting Studio comes back to the same category and page; with it off, to **Start in** and **Start page**
-- [ ] A second group `B` browses on its own; moving `B` never redraws `A` or any favorite
-- [ ] Removing the open category in Soundpad sends the group back to the list after a refresh
-- [ ] An empty category shows "Empty category" on its first position
 
 ## Playback controls
 

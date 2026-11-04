@@ -4,17 +4,16 @@ Play your [Soundpad](https://www.leppsoft.com/soundpad/) sounds from the keys of
 
 **Status:** not released. The automated tests pass against a simulated Soundpad, but the plugin has not yet run with a real Soundpad, in the real Ulanzi Studio or on a device. [docs/VERIFY.md](docs/VERIFY.md) is the checklist for that first run.
 
-![Keys in every state: ready, playing, paused, Soundpad closed, sound gone, a category, page buttons and controls](docs/keys.png)
+![Keys in every state: ready, playing, paused, Soundpad closed, sound gone, controls](docs/keys.png)
 
 - **Favorites:** any key plays one sound, on speakers, microphone or both. It keeps playing the right sound when you add, remove or reorder sounds in Soundpad.
-- **Your library on the keys:** a group of keys shows a page of categories or sounds, with keys for pages, categories and back. Several groups browse on their own.
 - **Playback controls:** stop, pause, next, previous, random, replay and volume.
 - **Clear state:** green while playing, yellow when paused, red when Soundpad is closed, grey when a sound is gone, each with its own mark too.
 - **Local and light:** talks to Soundpad only on your computer, through Soundpad's own remote control. One connection for every key, nothing running while no key is on the deck.
 
 ## Em português
 
-O Soundpad Controller toca os sons do Soundpad nas teclas do Ulanzi D200, D200H e D200X, no Windows. Tem favoritos fixos que continuam tocando o som certo mesmo depois de adicionar, remover ou reordenar sons; uma biblioteca navegável por categoria e página direto nas teclas; e controles de reprodução e volume. Conversa com o Soundpad só no seu computador e não envia nada pela internet. O painel de configurações e as mensagens das teclas estão em português e inglês. A instalação está em [docs/INSTALL.md](docs/INSTALL.md).
+O Soundpad Controller toca os sons do Soundpad nas teclas do Ulanzi D200, D200H e D200X, no Windows. Tem favoritos fixos que continuam tocando o som certo mesmo depois de adicionar, remover ou reordenar sons; e controles de reprodução e volume. Conversa com o Soundpad só no seu computador e não envia nada pela internet. O painel de configurações e as mensagens das teclas estão em português e inglês. A instalação está em [docs/INSTALL.md](docs/INSTALL.md).
 
 ## Documentation
 

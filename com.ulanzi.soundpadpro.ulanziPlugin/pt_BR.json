@@ -1,18 +1,10 @@
 {
   "Name": "Soundpad Controller",
-  "Description": "Toque os sons do Soundpad nas teclas: favoritos fixos, uma biblioteca por categoria e página, e controles de reprodução. Só Windows; precisa do Soundpad aberto. Sem vínculo com a Leppsoft.",
+  "Description": "Toque os sons do Soundpad nas teclas: favoritos e controles de reprodução. Só Windows; precisa do Soundpad aberto. Sem vínculo com a Leppsoft.",
   "Actions": [
     {
       "Name": "Som favorito",
       "Tooltip": "Toca um som que você escolhe."
-    },
-    {
-      "Name": "Posição da biblioteca",
-      "Tooltip": "Mostra uma categoria ou som da página da biblioteca."
-    },
-    {
-      "Name": "Navegação da biblioteca",
-      "Tooltip": "Move a biblioteca: páginas, categorias e voltar."
     },
     {
       "Name": "Controle de reprodução",
@@ -24,7 +16,6 @@
     "Sound not found": "Som não encontrado",
     "Soundpad closed": "Soundpad fechado",
     "Update Soundpad": "Atualize o Soundpad",
-    "Empty category": "Categoria vazia",
     "All sounds": "Todos os sons",
     "Connection": "Conexão",
     "Reconnect": "Reconectar",
@@ -47,17 +38,7 @@
     "Icon color": "Cor do ícone",
     "Background": "Fundo",
     "Show the name on the key": "Mostrar o nome na tecla",
-    "Navigation": "Navegação",
-    "Group": "Grupo",
-    "Position": "Posição",
-    "Button": "Botão",
     "Action": "Ação",
-    "Group options": "Opções do grupo",
-    "Positions": "Posições",
-    "Start in": "Começar em",
-    "Start page": "Página inicial",
-    "Remember where I left off": "Lembrar onde parei",
-    "Category list": "Lista de categorias",
     "output.both": "Alto-falantes e microfone",
     "output.speakers": "Só alto-falantes",
     "output.mic": "Só microfone",
@@ -73,12 +54,6 @@
     "color.pink": "Rosa",
     "background.black": "Preto",
     "background.graphite": "Grafite",
-    "nav.nextPage": "Próxima página",
-    "nav.previousPage": "Página anterior",
-    "nav.nextCategory": "Próxima categoria",
-    "nav.previousCategory": "Categoria anterior",
-    "nav.back": "Voltar às categorias",
-    "nav.refresh": "Atualizar biblioteca",
     "control.stop": "Parar",
     "control.pause": "Pausar e retomar",
     "control.next": "Próximo som",
@@ -100,9 +75,6 @@
     "icon.bolt": "Raio",
     "icon.fire": "Fogo",
     "icon.none": "Só o nome",
-    "group.note": "Todas as teclas com o mesmo nome de grupo funcionam juntas. Dê outro nome a um segundo conjunto de teclas para navegar separado.",
-    "group.positions": "0 usa a quantidade de teclas de posição no deck.",
-    "group.state": "Página {page} de {pages} · {where} · {keys} teclas de posição",
     "note.local": "Conversa com o Soundpad só neste computador. Nada é enviado pela internet.",
     "note.trademark": "Soundpad é um produto da Leppsoft. Este plugin não tem vínculo com a Leppsoft nem com a Ulanzi.",
     "conn.connected": "Conectado ao Soundpad {version}",

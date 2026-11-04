@@ -7,8 +7,8 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import {
-  ACCENTS, BACKGROUNDS, CONTROL_ACTIONS, ICONS, NAV_FUNCTIONS, OUTPUTS, PLAY_MODES,
-  normalizeControlSettings, normalizeNavSettings, normalizeSlotSettings, normalizeSoundSettings,
+  ACCENTS, BACKGROUNDS, CONTROL_ACTIONS, ICONS, OUTPUTS, PLAY_MODES,
+  normalizeControlSettings, normalizeSoundSettings,
 } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/settings.js';
 
 const pluginDir = fileURLToPath(new URL('../com.ulanzi.soundpadpro.ulanziPlugin/', import.meta.url));
@@ -24,7 +24,7 @@ test('UUIDs follow the shape the SDK relies on, and the code agrees', () => {
   assert.equal(manifest.UUID.split('.').length, 4);
   const app = read('plugin/app.js');
   assert.ok(app.includes(`PLUGIN_UUID = '${manifest.UUID}'`));
-  assert.deepEqual(manifest.Actions.map((action) => action.UUID.split('.').pop()), ['sound', 'slot', 'nav', 'control']);
+  assert.deepEqual(manifest.Actions.map((action) => action.UUID.split('.').pop()), ['sound', 'control']);
   for (const action of manifest.Actions) {
     assert.ok(action.UUID.startsWith(`${manifest.UUID}.`));
     assert.ok(action.UUID.split('.').length > 4);
@@ -116,7 +116,7 @@ test('every string marked in the panel, and every one the code asks for, can be 
   for (const prefix of ['conn', 'hint', 'sound', 'preview', 'icon']) {
     assert.ok(Object.keys(en.Localization).some((key) => key.startsWith(`${prefix}.`)), prefix);
   }
-  const plugin = ['keys/base-key.js', 'keys/sound-key.js', 'keys/slot-key.js', 'keys/nav-key.js', 'keys/control-key.js'].map((file) => read(`plugin/${file}`)).join('\n');
+  const plugin = ['keys/base-key.js', 'keys/sound-key.js', 'keys/control-key.js'].map((file) => read(`plugin/${file}`)).join('\n');
   for (const match of plugin.matchAll(/\bt\('([^']+)'\)/g)) keys.add(match[1]);
   for (const key of keys) assert.ok(en.Localization[key], key);
 });
@@ -128,14 +128,11 @@ const selectValues = (id) => {
 
 test('the panel offers exactly the choices the code accepts', () => {
   assert.deepEqual(selectValues('output'), OUTPUTS);
-  assert.deepEqual(selectValues('groupOutput'), OUTPUTS);
   assert.deepEqual(selectValues('controlOutput'), OUTPUTS.filter((output) => output !== 'default'));
   assert.deepEqual(selectValues('mode'), PLAY_MODES);
-  assert.deepEqual(selectValues('groupMode'), PLAY_MODES);
   assert.deepEqual(selectValues('accent'), ACCENTS);
   assert.deepEqual(selectValues('controlAccent'), ACCENTS);
   assert.deepEqual(selectValues('background'), BACKGROUNDS);
-  assert.deepEqual(selectValues('function'), NAV_FUNCTIONS);
   assert.deepEqual(selectValues('controlAction'), CONTROL_ACTIONS);
   for (const icon of ICONS) assert.ok(existsSync(join(pluginDir, `resources/icons/${icon}.png`)), icon);
 });
@@ -145,14 +142,12 @@ test('the defaults of the panel are the defaults of the plugin', () => {
   // Through JSON, because objects made in another context have another prototype.
   const defaults = JSON.parse(JSON.stringify(vm.runInNewContext(`(${source})`)));
   assert.deepEqual(defaults.sound, normalizeSoundSettings({}));
-  assert.deepEqual(defaults.slot, normalizeSlotSettings({}));
-  assert.deepEqual(defaults.nav, normalizeNavSettings({}));
   assert.deepEqual(defaults.control, normalizeControlSettings({}));
   assert.deepEqual(JSON.parse(JSON.stringify(vm.runInNewContext(inspectorJs.match(/const ICONS = (\[[^\]]*\]);/)[1]))), ICONS);
 });
 
 test('on-off options are checkboxes, as the store guideline asks', () => {
-  for (const field of ['showTitle', 'groupPersist']) {
+  for (const field of ['showTitle']) {
     assert.match(html, new RegExp(`type="checkbox" id="${field}"`), field);
   }
 });

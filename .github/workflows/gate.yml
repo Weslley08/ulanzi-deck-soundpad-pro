@@ -4,8 +4,11 @@ name: Gate
 # It also runs each week, because problems get found after the last pull request.
 on:
   pull_request:
-    # edited: changing the base or ticking a box has to run the branch rules again.
+    # edited: changing the base has to run the branch rules again.
     types: [opened, edited, reopened, synchronize]
+  # An approval, or taking it back, decides whether a pull request to main may merge.
+  pull_request_review:
+    types: [submitted, dismissed]
   # No push trigger: each commit on a pull request already runs the Gate, and a merge adds nothing the pull request did not check.
   schedule:
     - cron: '23 4 * * 1'
@@ -24,7 +27,7 @@ jobs:
     permissions:
       contents: read
       security-events: write
-    uses: Weslley08/ulanzi-plugin-pipeline/.github/workflows/gate.yml@v1
+    uses: Weslley08/ulanzi-plugin-pipeline/.github/workflows/gate.yml@feat/maintainer-approval
     with:
       # Soundpad and its remote control run on Windows only, so that is the one system the tests need.
       test-os: '["windows-latest"]'
@@ -33,4 +36,5 @@ jobs:
         paths-ignore:
           - com.ulanzi.soundpadpro.ulanziPlugin/plugin/render/glyphs
     secrets:
-      AUTOMATION_TOKEN: ${{ secrets.AUTOMATION_TOKEN }}
+      APP_CLIENT_ID: ${{ secrets.APP_CLIENT_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}

@@ -55,7 +55,6 @@ body:
       label: Which key
       options:
         - Favorite sound
-        - Library position or navigation
         - Playback control
         - All, or not related to one
   - type: textarea
