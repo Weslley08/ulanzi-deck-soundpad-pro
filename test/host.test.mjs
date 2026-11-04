@@ -108,15 +108,13 @@ test('announces the plugin, and does not touch Soundpad while no key is on the d
   assert.equal(sim.connections, 0);
 });
 
-test('the first key asks for the global settings with its context, and connects to Soundpad once', async () => {
+test('the first key connects to Soundpad once, and nothing is asked of Studio but the key', async () => {
   send({ cmd: 'add', ...keyMessage('sound', '0_0', 'a1', { param: {} }) });
-  const ask = await waitFor((m) => m.cmd === 'getGlobalSettings');
-  assert.deepEqual([ask.uuid, ask.key, ask.actionid], [action('sound'), '0_0', 'a1']);
-  send({ cmd: 'didReceiveGlobalSettings', uuid: PLUGIN_UUID, key: '', actionid: '', settings: {} });
   await waitFor(iconFor('0_0'));
   await until(() => sim.countOf('GetSoundlist') === 1);
   assert.equal(sim.connections, 1);
   assert.match(everything.filter(iconFor('0_0')).at(-1).param.statelist[0].data, /^data:image\/png;base64,/);
+  assert.equal(everything.find((m) => m.cmd === 'getGlobalSettings'), undefined);
 });
 
 test('a favorite with no sound alerts on press, as the store guideline asks', async () => {
@@ -183,67 +181,6 @@ test('a favorite whose sound was deleted never plays another one, and alerts', a
   assert.equal(status.payload.sound, 'missing');
 });
 
-test('a navigator group shows categories, opens one, pages through it and goes back', async () => {
-  for (let i = 1; i <= 4; i += 1) send({ cmd: 'add', ...keyMessage('slot', `${i}_1`, `s${i}`, { param: { group: 'A', position: i } }) });
-  send({ cmd: 'add', ...keyMessage('nav', '0_2', 'n1', { param: { group: 'A', function: 'nextPage' } }) });
-  send({ cmd: 'add', ...keyMessage('nav', '1_2', 'n2', { param: { group: 'A', function: 'back' } }) });
-  await waitFor(iconFor('4_1'));
-  send({ cmd: 'sendToPlugin', ...keyMessage('slot', '2_1', 's2', { payload: { type: 'hello' } }) });
-  let status = await waitFor(toPanel('2_1', 'status'));
-  assert.equal(status.payload.mode, 'categories');
-  assert.equal(status.payload.pageSize, 4);
-
-  // Position 2 holds the Memes category.
-  send({ cmd: 'run', ...keyMessage('slot', '2_1', 's2') });
-  await waitFor(iconFor('1_1'));
-  send({ cmd: 'sendToPlugin', ...keyMessage('slot', '2_1', 's2', { payload: { type: 'hello' } }) });
-  status = await waitFor(toPanel('2_1', 'status'));
-  assert.equal(status.payload.categoryName, 'Memes');
-  assert.equal(status.payload.pages, 3, '9 sounds left in Memes after the deletion, 4 per page');
-
-  send({ cmd: 'run', ...keyMessage('nav', '0_2', 'n1') });
-  await waitFor(iconFor('1_1'));
-  send({ cmd: 'sendToPlugin', ...keyMessage('slot', '2_1', 's2', { payload: { type: 'hello' } }) });
-  status = await waitFor(toPanel('2_1', 'status'));
-  assert.equal(status.payload.page, 2);
-
-  send({ cmd: 'run', ...keyMessage('slot', '1_1', 's1') });
-  await until(() => sim.status === 'PLAYING' && sim.sounds[sim.current - 1].title === 'Sound 6');
-
-  send({ cmd: 'run', ...keyMessage('nav', '1_2', 'n2') });
-  await waitFor(iconFor('1_1'));
-  send({ cmd: 'sendToPlugin', ...keyMessage('slot', '2_1', 's2', { payload: { type: 'hello' } }) });
-  status = await waitFor(toPanel('2_1', 'status'));
-  assert.equal(status.payload.mode, 'categories');
-});
-
-test('the place of a group is saved in the global settings, once the presses stop', async () => {
-  const save = await waitFor((m) => m.cmd === 'setGlobalSettings', 4000);
-  assert.ok(save.key && save.actionid, 'the main service sends a context');
-  assert.equal(save.settings.nav.A.mode, 'categories');
-});
-
-test('a second group moves on its own and never changes the first', async () => {
-  send({ cmd: 'add', ...keyMessage('slot', '0_3', 'b1', { param: { group: 'B', position: 1 } }) });
-  send({ cmd: 'add', ...keyMessage('nav', '1_3', 'b2', { param: { group: 'B', function: 'nextCategory' } }) });
-  await waitFor(iconFor('0_3'));
-  received = [];
-  send({ cmd: 'run', ...keyMessage('nav', '1_3', 'b2') });
-  await waitFor(iconFor('0_3'));
-  await sleep(QUIET_MS);
-  for (const key of ['1_1', '2_1', '3_1', '4_1', '0_0']) assert.equal(received.find(iconFor(key)), undefined, `${key} was redrawn`);
-});
-
-test('group options from the panel reach the group', async () => {
-  send({ cmd: 'sendToPlugin', ...keyMessage('slot', '2_1', 's2', { payload: { type: 'groupOptions', group: 'A', options: { positions: 2, output: 'speakers', persist: false } } }) });
-  const save = await waitFor((m) => m.cmd === 'setGlobalSettings');
-  assert.equal(save.settings.groups.A.positions, 2);
-  assert.equal(save.settings.nav.A, undefined, 'a group that does not remember forgets its place');
-  send({ cmd: 'sendToPlugin', ...keyMessage('slot', '2_1', 's2', { payload: { type: 'hello' } }) });
-  const status = await waitFor(toPanel('2_1', 'status'));
-  assert.equal(status.payload.pageSize, 2);
-});
-
 test('playback controls work, and the volume key shows the volume', async () => {
   send({ cmd: 'add', ...keyMessage('control', '0_4', 'c1', { param: { action: 'pause' } }) });
   send({ cmd: 'add', ...keyMessage('control', '1_4', 'c2', { param: { action: 'volumeUp' } }) });
@@ -279,10 +216,10 @@ test('bad input from the panel or the host changes nothing and breaks nothing', 
 test('Soundpad closing turns the keys red, and they recover by themselves', async () => {
   received = [];
   await sim.close();
-  await waitFor(iconFor('0_3'));
+  await waitFor(iconFor('0_4'));
   await sim.listen(sim.path);
   await until(() => sim.connections === 1, 15_000);
-  await waitFor(iconFor('0_3'), 15_000);
+  await waitFor(iconFor('0_4'), 15_000);
   assert.equal(plugin.exitCode, null);
 });
 
@@ -301,8 +238,6 @@ test('after losing Studio it reconnects on the same port and in the same languag
   received = [];
   socket.terminate();
   await waitFor((m) => m.cmd === 'connected');
-  const ask = await waitFor((m) => m.cmd === 'getGlobalSettings');
-  assert.ok(ask.key && ask.actionid);
   await waitFor(iconFor('0_0'));
 });
 

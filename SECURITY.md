@@ -8,7 +8,7 @@ Use [GitHub's private report](https://github.com/Weslley08/ulanzi-deck-soundpad-
 
 - It talks to Soundpad through Soundpad's own remote control, the named pipe `\\.\pipe\sp_remote_control`, which only programs on this computer can open. It sends nothing over the internet, opens no port, runs no other program and reads or writes no file of yours.
 - It reads your Soundpad sound list, with titles, artists, lengths and file locations, and keeps it in memory only. File locations never leave the plugin process: keys save a hash of a sound's location, not the location, because key settings travel in exported Studio profiles. The settings panel gets titles, artists and lengths, never locations.
-- Each key's settings are stored by Ulanzi Studio: the chosen sound's hashes, position and title, and the key's options. The plugin's global settings hold the options and the last page of each library group. Studio's storage is not documented as encrypted.
+- Each key's settings are stored by Ulanzi Studio: the chosen sound's hashes, position and title, and the key's options. Studio's storage is not documented as encrypted.
 - The only commands it can send to Soundpad are a fixed list: reading the list, categories, versions, playback state and volume; playing, stopping, pausing, next, previous, random and replay; and setting the speaker volume and mute. It cannot add, remove, move, save or record anything. Nothing typed in the panel or found in a profile can become part of a command.
 - Its log lines in Studio's log are short and fixed: they never include sound names or file locations.
 

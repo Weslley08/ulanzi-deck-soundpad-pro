@@ -1,5 +1,5 @@
 {
-  // Checks the Soundpad layer, navigation and settings: the code that talks to another process and
+  // Checks the Soundpad layer and settings: the code that talks to another process and
   // reads its answers. The plugin runs as plain JavaScript on Studio's Node, with no build step, so
   // this never emits anything.
   "compilerOptions": {
@@ -28,8 +28,6 @@
     "com.ulanzi.soundpadpro.ulanziPlugin/plugin/soundpad/library.js",
     "com.ulanzi.soundpadpro.ulanziPlugin/plugin/soundpad/service.js",
     "com.ulanzi.soundpadpro.ulanziPlugin/plugin/settings.js",
-    "com.ulanzi.soundpadpro.ulanziPlugin/plugin/navigation.js",
-    "com.ulanzi.soundpadpro.ulanziPlugin/plugin/global-store.js",
     "com.ulanzi.soundpadpro.ulanziPlugin/plugin/inspector-api.js"
   ]
 }

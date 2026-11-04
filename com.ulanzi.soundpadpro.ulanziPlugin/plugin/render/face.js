@@ -2,7 +2,7 @@
 // it, and a ring whose color says the state. The state never depends on color alone: playing,
 // paused, error and unavailable each also get their own mark in the corner.
 import { symbol } from './symbols.js';
-import { fit, normalizeText, text, wrap } from './text.js';
+import { fit, measure, normalizeText, text, wrap } from './text.js';
 
 export const SIZE = 144;
 export const FONT = { title: 'outfit-700', small: 'outfit-500' };
@@ -41,19 +41,36 @@ const STATE_MARKS = { playing: 'playing', paused: 'pause', error: 'warning', una
  *   idle shows a quiet mark in the corner (a sound that is not playing); progress is 0 to 50 steps of the bar.
  */
 
-const TITLE_SIZE = 19;
-const TITLE_MIN = 13;
-const TITLE_WIDTH = 124;
-const LINE_HEIGHT = 21;
+// The name takes the largest size that fits its box, in as many lines as the box allows. Beside an
+// icon the box is the lower part of the key; with no icon it is nearly the whole key.
+const WITH_ICON = { top: 64, height: 60, width: 128, max: 26, min: 15, lines: 3 };
+const NAME_ONLY = { top: 34, height: 90, width: 124, max: 34, min: 17, lines: 4 };
+const LINE_FACTOR = 1.12;
+const ASCENT = 0.78;
 
-/** Up to two lines, the second shortened with an ellipsis when the name is longer. */
-function titleLines(title) {
-  const words = wrap(FONT.title, title, TITLE_WIDTH, TITLE_SIZE);
-  if (!words.length) return [];
-  if (words.length === 1) return [fit(FONT.title, words[0], TITLE_WIDTH, TITLE_SIZE, TITLE_MIN)];
-  const first = fit(FONT.title, words[0], TITLE_WIDTH, TITLE_SIZE, TITLE_MIN);
-  const rest = words.slice(1).join(' ');
-  return [first, fit(FONT.title, rest, TITLE_WIDTH, TITLE_SIZE, TITLE_MIN)];
+/**
+ * Wraps a name at one size. Returns null when a word is wider than the line or there are too many
+ * lines, so the caller can try a smaller size.
+ */
+function wrapAt(title, size, box) {
+  const lines = wrap(FONT.title, title, box.width, size);
+  const maxLines = Math.min(box.lines, Math.floor(box.height / (size * LINE_FACTOR)));
+  if (!lines.length || lines.length > maxLines) return null;
+  return lines.every((line) => measure(FONT.title, line, size) <= box.width) ? lines.map((line) => ({ text: line, size })) : null;
+}
+
+/** The largest size that fits whole. At the smallest size, what does not fit is cut with an ellipsis. */
+function titleLines(title, box) {
+  for (let size = box.max; size >= box.min; size -= 1) {
+    const lines = wrapAt(title, size, box);
+    if (lines) return lines;
+  }
+  const size = box.min;
+  const maxLines = Math.max(1, Math.min(box.lines, Math.floor(box.height / (size * LINE_FACTOR))));
+  const wrapped = wrap(FONT.title, title, box.width, size);
+  const kept = wrapped.slice(0, maxLines);
+  if (wrapped.length > maxLines) kept[maxLines - 1] = [kept[maxLines - 1], ...wrapped.slice(maxLines)].join(' ');
+  return kept.map((line) => fit(FONT.title, line, box.width, size, size));
 }
 
 /** @param {FaceView} view */
@@ -65,19 +82,23 @@ export function faceSvg(view) {
   const ink = stateColor ?? accent;
   const ring = stateColor ?? READY_RING;
   const title = normalizeText(FONT.title, view.title ?? '');
-  const lines = title ? titleLines(title) : [];
+  const name = state === 'loading' ? 'dots' : view.symbol;
+  // No icon asked for: the name gets the space the icon would have taken.
+  const nameOnly = Boolean(title) && name === 'blank';
+  const box = nameOnly ? NAME_ONLY : WITH_ICON;
+  const lines = title ? titleLines(title, box) : [];
 
   let out = `<rect width="${SIZE}" height="${SIZE}" fill="${bg}"/>`;
   out += `<rect x="4" y="4" width="${SIZE - 8}" height="${SIZE - 8}" rx="22" fill="none" stroke="${ring}" stroke-width="${stateColor ? 5 : 3}"/>`;
 
-  const name = state === 'loading' ? 'dots' : view.symbol;
   if (lines.length) {
-    const size = lines.length > 1 ? 52 : 60;
-    out += symbol(name, (SIZE - size) / 2, lines.length > 1 ? 18 : 22, size, ink, bg);
-    const top = lines.length > 1 ? 100 : 112;
-    lines.forEach((line, i) => {
-      out += text(FONT.title, line.text, SIZE / 2, top + i * LINE_HEIGHT, line.size, { anchor: 'middle', fill: '#FFFFFF' });
-    });
+    if (!nameOnly) out += symbol(name, (SIZE - 44) / 2, 14, 44, ink, bg);
+    const height = lines.reduce((sum, line) => sum + line.size * LINE_FACTOR, 0);
+    let y = box.top + (box.height - height) / 2;
+    for (const line of lines) {
+      out += text(FONT.title, line.text, SIZE / 2, y + line.size * ASCENT, line.size, { anchor: 'middle', fill: nameOnly ? ink : '#FFFFFF' });
+      y += line.size * LINE_FACTOR;
+    }
   } else {
     out += symbol(name, 30, 30, 84, ink, bg);
   }

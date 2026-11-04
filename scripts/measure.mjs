@@ -46,7 +46,6 @@ server.on('connection', (client) => {
       images += 1;
       bytes += data.length;
     }
-    if (message.cmd === 'getGlobalSettings') send({ cmd: 'didReceiveGlobalSettings', uuid: manifest.UUID, key: '', actionid: '', settings: {} });
   });
   connected();
 });
@@ -86,13 +85,9 @@ await ready;
 await sleep(300);
 const atStart = await metrics();
 
-// A D200-like layout: four favorites, a navigator group of positions with its buttons, and controls.
-const positions = Math.max(1, KEYS - 8);
+// A D200-like layout: favorites and controls.
 const layout = [
-  ...Array.from({ length: 4 }, (_, i) => ({ action: 'sound', param: {} , key: `f${i}` })),
-  ...Array.from({ length: positions }, (_, i) => ({ action: 'slot', param: { group: 'A', position: i + 1 }, key: `p${i}` })),
-  { action: 'nav', param: { group: 'A', function: 'nextPage' }, key: 'n1' },
-  { action: 'nav', param: { group: 'A', function: 'back' }, key: 'n2' },
+  ...Array.from({ length: Math.max(1, KEYS - 2) }, (_, i) => ({ action: 'sound', param: {}, key: `f${i}` })),
   { action: 'control', param: { action: 'stop' }, key: 'c1' },
   { action: 'control', param: { action: 'volumeUp' }, key: 'c2' },
 ].slice(0, Math.max(KEYS, 5));

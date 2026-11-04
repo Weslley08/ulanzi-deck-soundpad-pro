@@ -1,18 +1,10 @@
 {
   "Name": "Soundpad Controller",
-  "Description": "Play your Soundpad sounds from the keys: fixed favorites, a library you browse by category and page, and playback controls. Windows only; needs Soundpad running. Not affiliated with Leppsoft.",
+  "Description": "Play your Soundpad sounds from the keys: favorites and playback controls. Windows only; needs Soundpad running. Not affiliated with Leppsoft.",
   "Actions": [
     {
       "Name": "Favorite sound",
       "Tooltip": "Plays one sound you choose."
-    },
-    {
-      "Name": "Library position",
-      "Tooltip": "Shows a category or sound from the library page."
-    },
-    {
-      "Name": "Library navigation",
-      "Tooltip": "Moves the library: pages, categories and back."
     },
     {
       "Name": "Playback control",
@@ -24,7 +16,6 @@
     "Sound not found": "Sound not found",
     "Soundpad closed": "Soundpad closed",
     "Update Soundpad": "Update Soundpad",
-    "Empty category": "Empty category",
     "All sounds": "All sounds",
     "Connection": "Connection",
     "Reconnect": "Reconnect",
@@ -47,17 +38,7 @@
     "Icon color": "Icon color",
     "Background": "Background",
     "Show the name on the key": "Show the name on the key",
-    "Navigation": "Navigation",
-    "Group": "Group",
-    "Position": "Position",
-    "Button": "Button",
     "Action": "Action",
-    "Group options": "Group options",
-    "Positions": "Positions",
-    "Start in": "Start in",
-    "Start page": "Start page",
-    "Remember where I left off": "Remember where I left off",
-    "Category list": "Category list",
     "output.both": "Speakers and microphone",
     "output.speakers": "Speakers only",
     "output.mic": "Microphone only",
@@ -73,12 +54,6 @@
     "color.pink": "Pink",
     "background.black": "Black",
     "background.graphite": "Graphite",
-    "nav.nextPage": "Next page",
-    "nav.previousPage": "Previous page",
-    "nav.nextCategory": "Next category",
-    "nav.previousCategory": "Previous category",
-    "nav.back": "Back to categories",
-    "nav.refresh": "Refresh library",
     "control.stop": "Stop",
     "control.pause": "Pause and resume",
     "control.next": "Next sound",
@@ -100,9 +75,6 @@
     "icon.bolt": "Bolt",
     "icon.fire": "Fire",
     "icon.none": "Name only",
-    "group.note": "Every key with the same group name works together. Give a second set of keys another name to browse separately.",
-    "group.positions": "0 counts the position keys on the deck.",
-    "group.state": "Page {page} of {pages} · {where} · {keys} position keys",
     "note.local": "Talks to Soundpad only on this computer. Nothing is sent over the internet.",
     "note.trademark": "Soundpad is a product of Leppsoft. This plugin is not affiliated with Leppsoft or Ulanzi.",
     "conn.connected": "Connected to Soundpad {version}",

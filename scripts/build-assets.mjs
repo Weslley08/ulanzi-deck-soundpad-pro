@@ -57,7 +57,7 @@ async function icons() {
   // List icons: 20x20, one color, transparent, as the guideline asks.
   const listIcon = (name, color) => `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">${symbol(name, 1, 1, 18, color, 'none')}</svg>\n`;
   save(plugin('resources/category.svg'), listIcon('speaker', '#FFFFFF'));
-  const actions = { sound: 'play', slot: 'note', nav: 'pageNext', control: 'pause' };
+  const actions = { sound: 'play', control: 'pause' };
   for (const [action, name] of Object.entries(actions)) {
     save(plugin(`resources/action-${action}.svg`), listIcon(name, '#A6A6A6'));
     const view = { background: 'black', state: 'ready', symbol: name };

@@ -4,10 +4,7 @@ import { afterEach, test } from 'node:test';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { handleInspectorMessage, librarySummary, searchSounds, soundRefFrom } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/inspector-api.js';
 import { HOLD_DELAY_MS, HOLD_MAX_MS, HOLD_REPEAT_MS, ControlKey } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/keys/control-key.js';
-import { NavKey } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/keys/nav-key.js';
-import { SlotKey } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/keys/slot-key.js';
 import { SoundKey } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/keys/sound-key.js';
-import { NavigationRegistry } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/navigation.js';
 import { PipeClient } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/soundpad/pipe-client.js';
 import { SoundpadService } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/soundpad/service.js';
 import { ManualTimers } from './support/manual-timers.mjs';
@@ -37,9 +34,7 @@ function fakeHost() {
 async function setup(simOptions = {}) {
   const sim = new SoundpadSimulator({ sounds: makeSounds(8), categories: [{ name: 'Memes', sounds: [1, 2, 3] }], ...simOptions });
   const path = await sim.listen();
-  let registry;
-  const service = new SoundpadService({ client: new PipeClient({ path, retryBaseMs: 20, retryMaxMs: 40 }), beforeNotify: (what) => what === 'library' && registry?.libraryChanged() });
-  registry = new NavigationRegistry({ library: () => service.library, onChange: () => {}, saveState: () => {} });
+  const service = new SoundpadService({ client: new PipeClient({ path, retryBaseMs: 20, retryMaxMs: 40 }) });
   const host = fakeHost();
   const views = [];
   const render = async (view) => {
@@ -48,7 +43,7 @@ async function setup(simOptions = {}) {
   };
   const keys = [];
   const make = (Type, settings) => {
-    const key = new Type(`ctx${keys.length}`, { host, service, registry, render });
+    const key = new Type(`ctx${keys.length}`, { host, service, render });
     key.updateSettings(settings);
     keys.push(key);
     return key;
@@ -62,7 +57,7 @@ async function setup(simOptions = {}) {
     for (let i = 0; i < 200 && !service.library; i += 1) await sleep(5);
     await sleep(10);
   };
-  return { sim, service, host, views, make, ready, registry };
+  return { sim, service, host, views, make, ready };
 }
 
 test('a favorite shows a prompt until a sound is chosen, then the sound', async () => {
@@ -160,46 +155,11 @@ test('every key turns red with a message when Soundpad closes', async () => {
   const ref = service.library.sounds[0];
   sound.updateSettings({ soundId: ref.id, soundIndex: 1, soundTitle: ref.title });
   const control = make(ControlKey, { action: 'stop', showTitle: true });
-  const slot = make(SlotKey, { group: 'A', position: 1 });
-  const nav = make(NavKey, { group: 'A', function: 'refresh' });
   await sim.close();
   for (let i = 0; i < 100 && service.state === 'connected'; i += 1) await sleep(5);
-  for (const key of [sound, control, slot, nav]) assert.equal(key.buildView().state, 'error', key.constructor.name);
+  for (const key of [sound, control]) assert.equal(key.buildView().state, 'error', key.constructor.name);
   assert.equal(control.buildView().title, 'T:Soundpad closed');
   assert.ok(views.some((view) => view.state === 'error'));
-});
-
-test('a navigator position opens a category and then plays its sounds', async () => {
-  const { make, ready, sim } = await setup();
-  const slot1 = make(SlotKey, { group: 'A', position: 1 });
-  const slot2 = make(SlotKey, { group: 'A', position: 2 });
-  await ready();
-  assert.equal(slot1.buildView().title, 'T:All sounds');
-  assert.equal(slot2.buildView().title, 'Memes');
-  assert.equal(slot2.buildView().badge, '3');
-  await slot2.run();
-  assert.equal(slot1.buildView().title, 'Sound 1');
-  await slot1.run();
-  assert.equal(sim.current, 1);
-  assert.equal(slot1.buildView().state, 'playing');
-  slot1.updateSettings({ ...slot1.settings, group: 'B' });
-  assert.equal(slot1.buildView().title, 'T:All sounds', 'a key moved to another group follows that group');
-});
-
-test('navigation buttons look disabled when they cannot move, and show where they lead', async () => {
-  const { make, ready } = await setup();
-  make(SlotKey, { group: 'A', position: 1 });
-  const next = make(NavKey, { group: 'A', function: 'nextPage' });
-  const back = make(NavKey, { group: 'A', function: 'back' });
-  const category = make(NavKey, { group: 'A', function: 'nextCategory' });
-  await ready();
-  assert.equal(back.buildView().state, 'disabled');
-  assert.equal(next.buildView().badge, '1/2');
-  assert.equal(category.buildView().title, 'T:All sounds');
-  await category.run();
-  assert.equal(back.buildView().state, 'ready');
-  assert.equal(category.buildView().title, 'Memes');
-  assert.equal(next.buildView().badge, '1/8');
 });
 
 test('holding a volume key moves it by ten at a steady pace, and letting go stops it', async () => {
@@ -314,7 +274,7 @@ test('the panel API answers hello, refresh, reconnect and preview, and ignores t
   const { make, ready, host, service, sim } = await setup();
   const key = make(SoundKey, {});
   await ready();
-  const deps = { service, store: { setGroupOptions: () => {} }, version: '9.9.9' };
+  const deps = { service, version: '9.9.9' };
   await handleInspectorMessage(key, { type: 'hello' }, deps);
   assert.deepEqual(host.panel.slice(-3).map((m) => m.type), ['status', 'about', 'library']);
   await handleInspectorMessage(key, { type: 'refresh' }, deps);

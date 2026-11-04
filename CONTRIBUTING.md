@@ -22,7 +22,7 @@ Open a pull request against `develop`. CI runs the tests on Windows and Linux, m
 |---|---|
 | `npm test` | All tests. The panel tests skip if no Chromium is installed; set `CHROME_PATH` to use one. |
 | `npm run test:coverage` | All tests, and fails if coverage of `plugin/` drops below the floors in `scripts/run-tests.mjs`. The panel runs in a browser, so it is not measured. |
-| `npm run typecheck` | Checks the Soundpad layer, navigation and settings with TypeScript. Nothing is built: the plugin is plain JavaScript. |
+| `npm run typecheck` | Checks the Soundpad layer and settings with TypeScript. Nothing is built: the plugin is plain JavaScript. |
 | `SOUNDPAD_LIVE=1 npm run test:live` | On Windows with Soundpad open: checks this plugin's assumptions against your real Soundpad. It only reads, unless you also set `SOUNDPAD_LIVE_PLAY=1`, which plays and stops one sound on your speakers. Skipped everywhere else. |
 | `npm run build:assets` | Regenerates icons, panel previews, store art and `docs/keys.png`. |
 | `npm run build:glyphs` | Regenerates font outlines. Only needed for a new character. |

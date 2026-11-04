@@ -20,7 +20,6 @@ Run everything on Node 20.12.2 (`.nvmrc`), the version Studio runs plugins on. `
 - **Integration:** only Soundpad's documented remote control, the named pipe `\\.\pipe\sp_remote_control`. No keyboard automation. The commands, their sources and the interface's limits are in `docs/SOUNDPAD-API.md`. Leppsoft's Java reference client (remote control 1.1.2) wins where sources disagree.
 - **One connection:** every key shares `SoundpadService` and one `PipeClient`. Never open a pipe per key. Requests go one at a time, presses jump the queue, and a timeout closes the connection.
 - **Favorites by identity:** a key keeps hashes of the file location and of title, artist and length, and the position only as a hint. The position is checked with `GetSoundlist(i, i)` right before playing. If a Soundpad answers that differently, the plugin falls back to reading the whole list before each press.
-- **Groups:** navigator groups are named, keep their own place, and redraw only their own keys. Favorites are never part of a group.
 - **Faces:** dark background, solid white symbols, green playing, yellow paused, red error or Soundpad closed, grey sound gone, each with a corner mark too. Text as outlines.
 - **WASM:** `render/renderer.js` sets `--liftoff-only` before resvg loads. It saved about 70 MB and 0.6 s of CPU at startup on Node 20.12.2; see `docs/PERFORMANCE.md`.
 - **Languages:** `en.json`, plus `pt_BR.json` and `pt_PT.json` with the same Brazilian Portuguese text, because Studio may report either.
@@ -33,7 +32,7 @@ Run everything on Node 20.12.2 (`.nvmrc`), the version Studio runs plugins on. `
 - `libs/` and `plugin/ulanzi-api/` are verbatim SDK copies pinned in `sdk-lock.json`. Extend in `host.js`; do not edit them.
 - Key images must be full data URIs. Devices silently ignore bare base64, and Studio's preview hides the bug.
 - Handle only `run` for presses: the D200H fires `keydown` and `run` for one touch.
-- The main service must pass a key's context to `getGlobalSettings` and `setGlobalSettings`. `GlobalStore` writes nothing before Studio has answered, or it would replace saved settings with defaults.
+- The plugin keeps no global settings. Everything a key needs is in its own settings, so Studio is asked for nothing but the keys.
 - A subscription to `SoundpadService` keeps the pipe open. Use `beforeNotify`, not a subscription, for anything that is not a key.
 - The panel's `DEFAULTS` and option lists must match `plugin/settings.js`; `test/manifest.test.mjs` checks it.
 - The simulator in `test/support/soundpad-sim.mjs` is not Soundpad. Never present a simulated pass as a check of the real thing.
