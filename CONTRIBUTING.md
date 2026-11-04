@@ -102,7 +102,7 @@ Each of these is needed once, and a step that lacks a secret fails and names it.
 
 - **Settings:** from a clone of [ulanzi-plugin-pipeline](https://github.com/Weslley08/ulanzi-plugin-pipeline), `node scripts/setup-repo.mjs Weslley08/ulanzi-deck-soundpad-pro` protects `develop`, `main` and `release/v*`, allows merge commits only, and turns on auto-merge and the security settings. Add `--dry-run` to see the changes first.
 - **`AUTOMATION_TOKEN`:** a [fine-grained token](https://github.com/settings/personal-access-tokens/new) for this repository only, with read and write on **Contents** and **Pull requests**. A pull request opened with the workflow's own token leaves the Gate waiting for a click on "Approve workflows to run". Set it with `gh secret set AUTOMATION_TOKEN`, and again when it expires.
-- **`PUBLISHING_ENABLED`:** a repository variable, not a secret. Until it is `true`, merging into `main` leaves the draft alone. Set it with `gh variable set PUBLISHING_ENABLED --body true` only once the maintainer has decided to publish.
+- **Publishing** is always on: merging a release into `main` publishes the draft, and there is no variable to turn it off.
 
 No other secret is needed: no check talks to an outside service.
 
