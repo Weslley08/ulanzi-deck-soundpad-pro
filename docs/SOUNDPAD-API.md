@@ -40,7 +40,7 @@ The Java file could not be downloaded from this session (the host was outside th
 | `DoPlayNextSound()`, `DoPlayPreviousSound()` | 1.0.0 | `R-200` | Next and previous |
 | `DoPlayCurrentSoundAgain()` | 1.1.0 | `R-200` | Replay |
 | `DoPlayRandomSound(speakers, mic)` | 1.1.2 | `R-200` | Random |
-| `GetVolume()`, `SetVolume(n)` | 1.0.0 | number, `R-200` | Volume keys, 0 to 100 in steps of 10 |
+| `GetVolume()`, `SetVolume(n)` | 1.0.0 | number, `R-200` | Volume keys, 0 to 100: one step per press, ten (to the next multiple of ten) while the key is held |
 | `IsMuted()`, `DoToggleMute()` | 1.0.0 | `1`/`0`, `R-200` | Mute key |
 
 "Since" is the section of the Java client the command appears under. Commands are built only from a fixed table in `plugin/soundpad/protocol.js`, with whole numbers and `true`/`false` as the only arguments. No text from a profile, the panel or Soundpad itself ever becomes part of a command.

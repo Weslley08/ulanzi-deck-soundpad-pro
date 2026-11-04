@@ -149,6 +149,9 @@ $UD.onParamFromPlugin(applySettings);
 
 // Only run: on the D200H one touch fires keydown and run, and handling both would act twice.
 $UD.onRun((jsn) => keyFor(jsn)?.run());
+// Down and up are used only to tell a hold from a press (volume keys); they never act on their own.
+$UD.onKeyDown((jsn) => keyFor(jsn)?.pressStart());
+$UD.onKeyUp((jsn) => keyFor(jsn)?.pressEnd());
 
 // active may arrive as a string.
 $UD.onSetActive((jsn) => keys.get(jsn.context)?.setActive(String(jsn.active) === 'true'));

@@ -3,13 +3,14 @@ import assert from 'node:assert/strict';
 import { afterEach, test } from 'node:test';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { handleInspectorMessage, librarySummary, searchSounds, soundRefFrom } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/inspector-api.js';
-import { ControlKey } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/keys/control-key.js';
+import { HOLD_DELAY_MS, HOLD_MAX_MS, HOLD_REPEAT_MS, ControlKey } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/keys/control-key.js';
 import { NavKey } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/keys/nav-key.js';
 import { SlotKey } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/keys/slot-key.js';
 import { SoundKey } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/keys/sound-key.js';
 import { NavigationRegistry } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/navigation.js';
 import { PipeClient } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/soundpad/pipe-client.js';
 import { SoundpadService } from '../com.ulanzi.soundpadpro.ulanziPlugin/plugin/soundpad/service.js';
+import { ManualTimers } from './support/manual-timers.mjs';
 import { SoundpadSimulator, makeSounds } from './support/soundpad-sim.mjs';
 
 const cleanups = [];
@@ -109,7 +110,7 @@ test('a favorite shows how far its sound has played, and nothing for another key
   assert.equal(other.buildView().idle, true);
 });
 
-test('a favorite turns green while its sound plays, yellow when paused, and stays white without feedback', async () => {
+test('a favorite turns green while its sound plays, yellow when paused, and is green or yellow whatever else is set', async () => {
   const { make, ready, service } = await setup();
   make(SoundKey, {});
   await ready();
@@ -121,8 +122,6 @@ test('a favorite turns green while its sound plays, yellow when paused, and stay
   assert.equal(other.buildView().state, 'ready', 'only the key whose sound plays');
   await service.control('pause');
   assert.equal(key.buildView().state, 'paused');
-  key.updateSettings({ ...key.settings, feedback: false });
-  assert.equal(key.buildView().state, 'ready');
 });
 
 test('a favorite whose sound is gone shows grey with its old name, and alerts on press', async () => {
@@ -203,6 +202,49 @@ test('navigation buttons look disabled when they cannot move, and show where the
   assert.equal(next.buildView().badge, '1/8');
 });
 
+test('holding a volume key moves it by ten at a steady pace, and letting go stops it', async () => {
+  const { sim, service, host, ready } = await setup();
+  const timers = new ManualTimers();
+  const key = new ControlKey('hold', { host, service, render: async () => 'x', timers });
+  key.updateSettings({ action: 'volumeUp' });
+  cleanups.push(async () => key.destroy());
+  await ready();
+  for (let i = 0; i < 50 && !service.volume; i += 1) await sleep(5);
+  await key.run();
+  assert.equal(sim.volume, 71, 'a press is one step');
+  key.pressStart();
+  assert.deepEqual(timers.delays, [HOLD_DELAY_MS, HOLD_MAX_MS]);
+  await timers.fire(HOLD_DELAY_MS);
+  assert.equal(sim.volume, 80, 'holding moves to the next ten');
+  assert.ok(timers.delays.includes(HOLD_REPEAT_MS));
+  await timers.fire(HOLD_REPEAT_MS);
+  assert.equal(sim.volume, 90);
+  key.pressEnd();
+  assert.equal(timers.pending.size, 0, 'releasing leaves nothing running');
+  assert.equal(await timers.fire(HOLD_REPEAT_MS), 0);
+  assert.equal(sim.volume, 90);
+});
+
+test('a hold ends by itself if the release never arrives, and other keys ignore holding', async () => {
+  const { service, host, ready } = await setup();
+  const timers = new ManualTimers();
+  const key = new ControlKey('hold', { host, service, render: async () => 'x', timers });
+  cleanups.push(async () => key.destroy());
+  key.updateSettings({ action: 'volumeDown' });
+  await ready();
+  key.pressStart();
+  await timers.fire(HOLD_DELAY_MS);
+  await timers.fire(HOLD_MAX_MS);
+  assert.equal(timers.pending.size, 0);
+  key.updateSettings({ action: 'stop' });
+  key.pressStart();
+  assert.equal(timers.pending.size, 0, 'only volume keys react to holding');
+  key.updateSettings({ action: 'volumeUp' });
+  key.pressStart();
+  key.setActive(false);
+  assert.equal(timers.pending.size, 0, 'a hidden key stops holding');
+});
+
 test('control keys show the playback state and the volume', async () => {
   const { make, ready, service } = await setup();
   const stop = make(ControlKey, { action: 'stop' });
@@ -220,7 +262,7 @@ test('control keys show the playback state and the volume', async () => {
   await mute.run();
   assert.deepEqual([mute.buildView().symbol, mute.buildView().state], ['mute', 'paused']);
   await volume.run();
-  assert.equal(volume.buildView().badge, '80%');
+  assert.equal(volume.buildView().badge, '71%');
   volume.updateSettings({ action: 'stop' });
   assert.equal(volume.buildView().badge, undefined);
 });

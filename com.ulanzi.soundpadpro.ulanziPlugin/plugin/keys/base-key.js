@@ -62,6 +62,11 @@ export class BaseKey {
   /** @param {boolean} _active */
   onActiveChanged(_active) {}
 
+  /** The key went down or up. Only keys that react to holding use these; a press itself is `run`. */
+  pressStart() {}
+
+  pressEnd() {}
+
   /** Forgets what was sent. The screen may have been repainted, or Studio restarted. */
   redraw() {
     this.#lastView = null;

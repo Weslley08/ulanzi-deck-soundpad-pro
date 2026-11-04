@@ -64,12 +64,11 @@ export class SlotKey extends BaseKey {
       };
     }
     const state = this.#playState(item.sound);
-    const feedback = !settings.feedback ? {} : state === 'ready' ? { idle: true } : { progress: this.service.progressFor(item.sound.id) };
+    const feedback = state === 'ready' ? { idle: true } : { progress: this.service.progressFor(item.sound.id) };
     return { ...base, state, symbol: 'note', title: title(item.sound.title), ...feedback };
   }
 
   #playState(sound) {
-    if (!this.settings.feedback) return 'ready';
     const playing = this.service.nowPlaying;
     if (!playing || playing.id !== sound.id || !sound.id) return 'ready';
     if (this.service.playStatus === 'PAUSED') return 'paused';

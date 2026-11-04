@@ -252,7 +252,7 @@ test('playback controls work, and the volume key shows the volume', async () => 
   send({ cmd: 'run', ...keyMessage('control', '0_4', 'c1') });
   await until(() => sim.status === 'PAUSED');
   send({ cmd: 'run', ...keyMessage('control', '1_4', 'c2') });
-  await until(() => sim.volume === 80);
+  await until(() => sim.volume === 71);
 });
 
 test('an unchanged setting sends no image, so the device is not repainted for nothing', async () => {

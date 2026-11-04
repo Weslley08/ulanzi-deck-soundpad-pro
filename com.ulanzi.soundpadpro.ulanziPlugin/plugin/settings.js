@@ -60,7 +60,6 @@ export function normalizeSoundSettings(raw = {}) {
     accent: oneOf(raw.accent, ACCENTS, ACCENTS[0]),
     output: oneOf(raw.output, OUTPUTS, OUTPUTS[0]),
     mode: oneOf(raw.mode, PLAY_MODES, PLAY_MODES[0]),
-    feedback: flag(raw.feedback, true),
     ...appearance(raw),
   };
 }
@@ -75,7 +74,6 @@ export function normalizeSlotSettings(raw = {}) {
   return {
     group: groupId(raw.group),
     position: integer(raw.position, 1, MAX_POSITIONS, 1),
-    feedback: flag(raw.feedback, true),
     ...appearance(raw),
   };
 }
