@@ -4,7 +4,6 @@ name: Delivery
 on:
   push:
     branches:
-      # Keep these in step with WORK_PREFIXES in the pipeline's scripts/lib/flow.mjs.
       - feature/**
       - feat/**
       - fix/**

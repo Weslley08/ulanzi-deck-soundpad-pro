@@ -392,17 +392,35 @@ test('playback controls send the matching command', async () => {
   assert.equal((await service.control('explode')).result, 'unsupported');
 });
 
-test('volume moves in steps within 0 to 100, and mute toggles', async () => {
+test('volume moves by one, or by ten to the next multiple of ten, within 0 to 100, and mute toggles', async () => {
   const { sim, service } = await setup();
   await connected(service, { wantsVolume: true });
   for (let i = 0; i < 50 && !service.volume; i += 1) await sleep(5);
   assert.deepEqual(service.volume, { volume: 70, muted: false });
   await service.control('volumeUp');
+  assert.equal(sim.volume, 71);
+  await service.control('volumeDown');
+  await service.control('volumeDown');
+  assert.equal(sim.volume, 69);
+  await service.control('volumeUp', { step: 10 });
+  assert.equal(sim.volume, 70, 'up to the next multiple of ten');
+  await service.control('volumeUp', { step: 10 });
   assert.equal(sim.volume, 80);
+  sim.volume = 63;
+  await service.control('volumeDown', { step: 10 });
+  assert.equal(sim.volume, 60);
+  await service.control('volumeDown', { step: 10 });
+  assert.equal(sim.volume, 50);
   sim.volume = 97;
+  await service.control('volumeUp', { step: 10 });
+  assert.equal(sim.volume, 100);
+  sim.volume = 100;
   await service.control('volumeUp');
   assert.equal(sim.volume, 100);
   sim.volume = 4;
+  await service.control('volumeDown', { step: 10 });
+  assert.equal(sim.volume, 0);
+  sim.volume = 0;
   await service.control('volumeDown');
   assert.equal(sim.volume, 0);
   await service.control('mute');

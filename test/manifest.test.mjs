@@ -152,7 +152,7 @@ test('the defaults of the panel are the defaults of the plugin', () => {
 });
 
 test('on-off options are checkboxes, as the store guideline asks', () => {
-  for (const field of ['feedback', 'showTitle', 'groupPersist', 'slotFeedback']) {
+  for (const field of ['showTitle', 'groupPersist']) {
     assert.match(html, new RegExp(`type="checkbox" id="${field}"`), field);
   }
 });

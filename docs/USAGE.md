@@ -75,7 +75,7 @@ When sounds are added or removed in Soundpad, the pages follow: a deleted sound 
 - **Next sound** and **Previous sound** follow Soundpad's own list and selection.
 - **Random sound** plays any sound, on the outputs you choose.
 - **Play the last sound again** replays what played last.
-- **Volume up** and **Volume down** move Soundpad's speaker volume in steps of 10 and show it, like `70%`. **Mute and unmute** shows a crossed speaker when muted. There is no volume control for the microphone in Soundpad's remote control.
+- **Volume up** and **Volume down** move Soundpad's speaker volume by 1 per press, and by 10 (to the next multiple of 10) while you hold the key, and show it, like `70%`. **Mute and unmute** shows a crossed speaker when muted. There is no volume control for the microphone in Soundpad's remote control.
 
 Random, replay and categories need a recent Soundpad. On an older one, those keys alert on press and the panel's Diagnostics shows the remote control version.
 

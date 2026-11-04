@@ -3,8 +3,8 @@ for (const method of ['log', 'info', 'debug', 'warn', 'error']) console[method] 
 
 // Kept in step with plugin/settings.js by test/manifest.test.mjs.
 const DEFAULTS = {
-  sound: { soundId: '', soundAlt: '', soundIndex: 0, soundTitle: '', label: '', icon: 'play', accent: 'white', output: 'both', mode: 'pause', feedback: true, background: 'black', showTitle: true },
-  slot: { group: 'A', position: 1, feedback: true, background: 'black', showTitle: true },
+  sound: { soundId: '', soundAlt: '', soundIndex: 0, soundTitle: '', label: '', icon: 'play', accent: 'white', output: 'both', mode: 'pause', background: 'black', showTitle: true },
+  slot: { group: 'A', position: 1, background: 'black', showTitle: true },
   nav: { group: 'A', function: 'nextPage', background: 'black' },
   control: { action: 'stop', output: 'both', accent: 'white', background: 'black', showTitle: true },
 };

@@ -230,7 +230,6 @@ test('a favorite shows its own sections only, in the host language', options, as
   assert.equal(await run(`document.querySelector('#search').placeholder`), 'Digite parte do nome');
   assert.equal(await run(`document.querySelector('#iconGrid').children.length`), 11);
   await until(`document.querySelector('#chosen').textContent === 'Nenhum escolhido'`);
-  assert.equal(await run(`document.querySelector('#feedback').checked`), true, 'defaults show before any saved setting arrives');
   assert.equal(await run(`document.querySelector('#showTitle').checked`), true);
 });
 
@@ -310,20 +309,19 @@ test('preview asks the plugin to play the sound', options, async () => {
 });
 
 test('saved settings fill the form, and changing one saves the rest as they were', options, async () => {
-  fromHost({ cmd: 'paramfromapp', param: { soundId: ID('c'), soundAlt: ID('d'), soundIndex: 2, soundTitle: 'Laugh', output: 'mic', mode: 'toggle', feedback: false, label: 'Haha', icon: 'laugh', accent: 'pink', background: 'graphite', showTitle: false } });
+  fromHost({ cmd: 'paramfromapp', param: { soundId: ID('c'), soundAlt: ID('d'), soundIndex: 2, soundTitle: 'Laugh', output: 'mic', mode: 'toggle', label: 'Haha', icon: 'laugh', accent: 'pink', background: 'graphite', showTitle: false } });
   await until(`document.querySelector('#output').value === 'mic'`);
   assert.equal(await run(`document.querySelector('#mode').value`), 'toggle');
-  assert.equal(await run(`document.querySelector('#feedback').checked`), false);
   assert.equal(await run(`document.querySelector('[name=icon]:checked').value`), 'laugh');
   assert.equal(await run(`document.querySelector('#chosen').textContent`), 'Laugh');
   messages = [];
-  await run(`(() => { const el = document.querySelector('#feedback'); el.click(); })()`);
+  await run(`(() => { const el = document.querySelector('#showTitle'); el.click(); })()`);
   const saved = await waitForMessage((m) => m.cmd === 'paramfromplugin');
-  assert.equal(saved.param.feedback, true, 'a checkbox saves as true or false');
+  assert.equal(saved.param.showTitle, true, 'a checkbox saves as true or false');
   assert.equal(saved.param.output, 'mic');
   assert.equal(saved.param.soundId, ID('c'));
   assert.equal(saved.param.label, 'Haha');
-  assert.equal(saved.param.showTitle, false);
+  assert.equal(saved.param.showTitle, true);
 });
 
 test('the state of the chosen sound reads clearly', options, async () => {
@@ -347,7 +345,7 @@ test('a library position shows its group and the shared group options', options,
   await until(`document.querySelector('#groupOptions')?.offsetParent != null`);
   assert.equal(await run(`document.querySelector('section[data-action=sound]').offsetParent`), null);
   fromHost({ cmd: 'sendToPropertyInspector', payload: LIBRARY });
-  fromHost({ cmd: 'paramfromapp', param: { group: 'Memes', position: 3, feedback: true, background: 'black', showTitle: true } });
+  fromHost({ cmd: 'paramfromapp', param: { group: 'Memes', position: 3, background: 'black', showTitle: true } });
   await until(`document.querySelector('#slotGroup').value === 'Memes'`);
   assert.equal(await run(`document.querySelector('#position').value`), '3');
   fromHost({ cmd: 'sendToPropertyInspector', payload: { ...CONNECTED, kind: 'slot', group: 'Memes', page: 2, pages: 5, mode: 'sounds', categoryName: 'Memes', positionsOnDeck: 4, pageSize: 4, options: { positions: 0, startCategory: 'c0123456789abcdef', startPage: 1, persist: true, output: 'speakers', mode: 'play' } } });

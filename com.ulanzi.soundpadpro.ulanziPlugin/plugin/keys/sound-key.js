@@ -66,13 +66,11 @@ export class SoundKey extends BaseKey {
 
   /** The corner mark when idle, and the bar while this key's sound plays or is paused. */
   #feedback(state, sound) {
-    if (!this.settings.feedback) return {};
     if (state === 'ready') return { idle: true };
     return { progress: this.service.progressFor(sound.id) };
   }
 
   #playState(sound) {
-    if (!this.settings.feedback) return 'ready';
     const playing = this.service.nowPlaying;
     if (!playing || !sound.id || playing.id !== sound.id) return 'ready';
     if (this.service.playStatus === 'PAUSED') return 'paused';
