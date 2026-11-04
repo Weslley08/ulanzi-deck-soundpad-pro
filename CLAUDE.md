@@ -17,7 +17,7 @@ Run everything on Node 20.12.2 (`.nvmrc`), the version Studio runs plugins on. `
 
 ## Decisions
 
-- **Integration:** only Soundpad's documented remote control, the named pipe `\\.\pipe\sp_remote_control`. No keyboard automation. The one exception, chosen by the maintainer on 2026-11-03, is the microphone mute key: Soundpad's interface has no microphone command, so `plugin/system/microphone.js` mutes and unmutes the default Windows microphone with a fixed PowerShell script (Core Audio). It only mutes; there is no microphone volume. It starts PowerShell on each press and when the deck comes back on screen, never on a timer. The commands, their sources and the interface's limits are in `docs/SOUNDPAD-API.md`. Leppsoft's Java reference client (remote control 1.1.2) wins where sources disagree.
+- **Integration:** only Soundpad's documented remote control, the named pipe `\\.\pipe\sp_remote_control`. No keyboard automation. The commands, their sources and the interface's limits are in `docs/SOUNDPAD-API.md`. Leppsoft's Java reference client (remote control 1.1.2) wins where sources disagree.
 - **One connection:** every key shares `SoundpadService` and one `PipeClient`. Never open a pipe per key. Requests go one at a time, presses jump the queue, and a timeout closes the connection.
 - **Favorites by identity:** a key keeps hashes of the file location and of title, artist and length, and the position only as a hint. The position is checked with `GetSoundlist(i, i)` right before playing. If a Soundpad answers that differently, the plugin falls back to reading the whole list before each press.
 - **Groups:** navigator groups are named, keep their own place, and redraw only their own keys. Favorites are never part of a group.
